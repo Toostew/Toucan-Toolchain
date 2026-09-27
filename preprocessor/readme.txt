@@ -5,8 +5,9 @@ the main loop:
     it's main job is going by each line, detecting the directive for the line, calling the comment-stripping handler, and finally invoking the appropriate
     directive (or non-directive) handler with that comment-stripped line. It also has the additional job of tracking the active file via the file stack (fileEntryStack). This is done to prevent
     dependency cycles during #include directives. When 2 files try to include each other, or when multiple files include the same file, or if a file includes itself,
-     it could cause an infinite loop. the stack ensures that only one instance of a file can be processed on the stack. any time when the same file
-     is included when it's already on the stack, the program errors out.
+    it could cause an infinite loop. the stack ensures that only one instance of a file can be processed on the stack. any time when the same file
+    is included when it's already on the stack, the program errors out. Define Directives are handled by identifying keys and values using #define, and storing the
+    value in a MacroTable Class, within a unordered_map.
 
 
 the Include, Define and undefine Handlers:

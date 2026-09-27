@@ -1,4 +1,4 @@
-add_executable(lexer src/lexer.cpp)
+add_executable(lexer src/TokenTable.cpp)
 
-target_include_directories(lexer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lexer/inc)
+target_include_directories(lexer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
