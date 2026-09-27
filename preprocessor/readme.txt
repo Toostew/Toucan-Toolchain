@@ -20,6 +20,18 @@ the Include, Define and undefine Handlers:
     for quotations anymore. I do however plan to return and maybe reimplement this so you COULD allow whitespace, which means wrapping the
     argument in quotations, but that's for another time.
 
+Define handler special edge cases (and solution):
+    There is an edge case that can occur if 2 or more defines are issued. Currently, macros are expanded sequentially per line. what this means
+    is that each macro is checked individually for every line. This can cause a very specific issue wherein, a macro that was successfully detected and expanded,
+    results in an expanded macro that contains a valid pattern in subsequent macros. This triggers the macro expansion logic for later macros, resulting
+    in unpredictable behaviour. I've thought up a way to counter this. We'd use a DS to store "protected regions" of a line, or regions on a line
+    that have already experienced a macro expansion. Subsequent expansions cannot occur within these regions. This solves the initial problem but raises
+    a new one: if a subsequent macro is expanded, and if the length of the expanded macro doesn't perfectly match the original, un-expanded one, protected regions
+    behind this macro will be right or left-shifted, resulting in inaccurate protected regions and thus, again, unpredictable results.
+    We solve this by figuring out the difference in length between the expanded macro and it's initial (Value vs Key), surely, any protected
+    regions that are behind this expanded macro can be shifted correctly into place.
+    NOTE: I haven't implemented this yet so the current preprocessor still has this bug
+
 
 std::vector<std::string> MacroTable::getMacros():
     this function irks me because I NEED to get a list of every single key from the macrotable in order to expand macros during preprocessing.

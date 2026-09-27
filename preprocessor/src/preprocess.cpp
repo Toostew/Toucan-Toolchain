@@ -129,7 +129,7 @@ void PreProcessor::defineHandler(std::string line) {
 	//read pointer now lies on the first whitespace beyond the key.
 	//everything past this point is considered as the value, except trailing whitespace
 	std::getline(lineStream, value);
-	size_t start = value.find_first_not_of("\t"); //find the first non-whitespace character
+	size_t start = value.find_first_not_of(" \t"); //find the first non-whitespace character
 
 
 	if (start != std::string::npos) {
@@ -199,11 +199,20 @@ void PreProcessor::processFile(std::string inputFile, std::string outputFile){
 
 //checks if the char is a valid boundary char (to distinguish unique matches with substring matches)
 bool PreProcessor::isValidBoundary(char c) {
-	return c == ' '  ||  // Whitespace
-		   c == '('  ||  // Open parenthesis
-		   c == ')'  ||  // Close parenthesis
-		   c == '\t' ||  // Tab character
-		   c == '\n';    // Newline character
+	return c == ' '  ||
+		   c == '('  ||
+		   c == ')'  ||
+		   c == '\t' ||
+		   c == '+' ||
+		   c == '-' ||
+		   c == ';' ||
+		   c == '=' ||
+		   c == ',' ||
+		   c == '{' ||
+		   c == '}' ||
+		   c == '<' ||
+		   c == '>';
+
 }
 
 
@@ -277,7 +286,7 @@ std::string PreProcessor::stripComment(std::string line) {
 
 	size_t pos = line.find("//");
 	if (pos != std::string::npos) {
-		return line.erase();
+		return line.erase(pos); //wipe everything to the right of the //
 	}
 
 	//if npos, then there is no comment
