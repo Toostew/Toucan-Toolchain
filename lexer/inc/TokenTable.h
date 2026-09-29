@@ -2,8 +2,8 @@
 // Created by tooka on 27/09/2026.
 //
 
-#ifndef NTR_TOOLCHAIN_LEXER_H
-#define NTR_TOOLCHAIN_LEXER_H
+#ifndef TOKENTABLE_H
+#define TOKENTABLE_H
 
 #include <fstream>
 #include <iostream>
@@ -12,11 +12,13 @@
 #include <vector>
 
 
-int main(void);
+
 
 enum class tokenType {
-    //keywords/reserved words
+    //keywords/reserved general words
     IF, ELSE, WHILE, FOR, RETURN,
+    //reserved type words
+    INT, BOOL,
     //Operators
     PLUS, MINUS, MULTIPLY, DIVIDE,
     //logical Comparators

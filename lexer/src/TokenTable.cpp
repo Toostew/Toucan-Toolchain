@@ -4,11 +4,7 @@
 
 #include "TokenTable.h"
 
-int main() {
 
-
-    return 0;
-}
 
 
 //populate the tokenTable at class init
@@ -19,6 +15,10 @@ TokenTable::TokenTable() {
     addToken("while",tokenType::WHILE);
     addToken("for",tokenType::FOR);
     addToken("return",tokenType::RETURN);
+
+    //reserved types
+    addToken("int",tokenType::INT);
+    addToken("bool",tokenType::BOOL);
 
     //Operators
     addToken("+", tokenType::PLUS);
