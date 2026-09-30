@@ -23,6 +23,7 @@ class Lexer {
     private:
         TokenTable tokenTable;
         std::vector<token> fileTokens; //list, in order, of tokens and their appearance in the file
+        void flushBuffer(std::string& buffer);
 };
 
 
