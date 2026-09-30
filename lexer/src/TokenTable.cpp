@@ -56,3 +56,29 @@ TokenTable::TokenTable() {
 
 }
 
+std::vector<std::pair<std::string, tokenType> > TokenTable::getTokenTableEntries() {
+    std::vector<std::pair<std::string, tokenType> > tokenTableEntries;
+    for (const std::pair<std::string, tokenType>& token : TokenTable::tokenTable) {
+        tokenTableEntries.push_back(token);
+    }
+
+    return tokenTableEntries;
+}
+
+
+tokenType TokenTable::getToken(std::string key) {
+    auto iter = TokenTable::tokenTable.find(key);
+    if (iter != TokenTable::tokenTable.end()) {
+        return iter->second;
+    } else {
+        std::cout << "Key not found: " << key << std::endl;
+        return tokenType::ERR;
+    }
+}
+
+
+void TokenTable::addToken(std::string key, tokenType tokentype) {
+    tokenTable[key] = tokentype;
+}
+
+

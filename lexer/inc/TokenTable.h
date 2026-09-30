@@ -28,7 +28,15 @@ enum class tokenType {
     //Identifier and literals
     IDENTIFIER, INT_LITERAL, BOOL_TRUE, BOOL_FALSE,
     //reserved punctuation
-    LPAREN, RPAREN, LBRACE, RBRACE, SEMICOLON, COMMA
+    LPAREN, RPAREN, LBRACE, RBRACE, SEMICOLON, COMMA,
+
+    //ERR
+    ERR
+};
+
+struct token {
+    std::string text;
+    tokenType type;
 };
 
 
@@ -36,12 +44,12 @@ class TokenTable {
     public:
         TokenTable();
         std::vector<std::pair<std::string, tokenType>> getTokenTableEntries(); //returns all pairs in the tokenTable
-        std::pair<std::string, tokenType> getToken(std::string key);
+        tokenType getToken(std::string key);
 
 
     private:
         void addToken(std::string key, tokenType token);
-        std::unordered_map<std::string,tokenType> tokenTable; //hashmap of every single token
+        std::unordered_map<std::string, tokenType> tokenTable; //hashmap of every single token
 
 };
 

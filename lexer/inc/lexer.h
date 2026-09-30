@@ -9,21 +9,21 @@
 #include <stdio.h>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include "TokenTable.h"
 
 
-
-
 class Lexer {
     public:
-        void addToken(std::pair<std::string, tokenType> tokenPair); //this is a one way operation
-
+        void addTokenToVector(std::string text, tokenType type); //add token to the vector
+        void analyzeFile(std::string inputFile, std::string outputFile);
 
 
     private:
-        std::vector<std::pair<std::string, tokenType>> fileTokens;
+        TokenTable tokenTable;
+        std::vector<token> fileTokens; //list, in order, of tokens and their appearance in the file
 };
 
 
-#endif //NTR_TOOLCHAIN_LEXER_H
+#endif //LEXER_H
