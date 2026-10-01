@@ -71,7 +71,6 @@ tokenType TokenTable::getToken(std::string key) {
     if (iter != TokenTable::tokenTable.end()) {
         return iter->second;
     } else {
-        std::cout << "Key not found: " << key << std::endl;
         return tokenType::ERR;
     }
 }

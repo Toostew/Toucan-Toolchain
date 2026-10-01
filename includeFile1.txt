@@ -1,0 +1,11 @@
+#define placeholder 500
+#define ticket Your_ticket_is_here
+
+while (TRUE) {
+	if(ticket == 1){
+	return 0;
+
+}
+
+}
+

@@ -1,10 +1,10 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef PREPROCESSOR_MAIN_H
+#define PREPROCESSOR_MAIN_H
 
 #include <iostream>
 
 
-int main();
+int main(int argc, char* argv[]);
 
 
 #endif 

@@ -120,11 +120,26 @@ std::string tokenTypeToString(token token) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     Lexer lexer;
-    lexer.analyzeFile("lexerTesterIN.txt");
-    outputWriter("lexerTesterOUT.txt", lexer.getFileTokens());
 
+    if (argc < 2) {
+        std::cerr << "lexer <filename> OPTIONAL=<outputfilename>" << std::endl;
+    }
+    else if (argc == 2) {
+        std::string outputFileName = argv[1];
+        outputFileName = outputFileName.substr(0, outputFileName.find_last_of('.'));
+        outputFileName += "LX.txt"; //LeXer.txt
+        lexer.analyzeFile(argv[1]);
+        outputWriter(outputFileName,lexer.getFileTokens());
+    }
+    else if (argc == 3) {
+        lexer.analyzeFile(argv[1]);
+        outputWriter(argv[2],lexer.getFileTokens());
+    }
+    else {
+        std::cerr << "lexer <filename> OPTIONAL=<outputfilename>" << std::endl;
+    }
     return 0;
 }
 

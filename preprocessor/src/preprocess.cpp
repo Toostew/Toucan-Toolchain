@@ -187,7 +187,6 @@ void PreProcessor::processFile(std::string inputFile, std::string outputFile){
 			case directiveType::NON_DIRECTIVE:
 				//here we do macro expansion.
 				std::string processedLine = expandMacro(strippedBuffer);
-				std::cout << processedLine << std::endl;
 				writeFile << processedLine << "\n";
 				break;
 
@@ -267,7 +266,6 @@ std::string PreProcessor::expandMacro(std::string line) {
 		}
 	}
 
-	std::cout << line;
 	return line;
 }
 
