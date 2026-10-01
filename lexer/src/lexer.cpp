@@ -30,11 +30,14 @@ void Lexer::flushBuffer(std::string &buffer) {
     buffer = "";
 }
 
+std::vector<token> Lexer::getFileTokens() {
+    return fileTokens; //returns copy of fileTokens
+}
 
-void Lexer::analyzeFile(std::string inputFile, std::string outputFile) {
+
+
+void Lexer::analyzeFile(std::string inputFile) {
     std::string line;
-
-    std::ofstream writeFile(outputFile);
     std::ifstream readFile(inputFile);
 
     if (!readFile.is_open()) {
@@ -82,7 +85,7 @@ void Lexer::analyzeFile(std::string inputFile, std::string outputFile) {
                                 //char is a number, add to buffer
                                 buffer += c;
 
-                            } else if (std::isspace(c)) {
+                            } else if (std::isspace(static_cast<unsigned char>(c))) {
                                 //char is whitespace
                                 addTokenToVector(buffer, tokenType::INT_LITERAL);
                                 buffer = "";

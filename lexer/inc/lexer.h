@@ -17,14 +17,16 @@
 class Lexer {
     public:
         void addTokenToVector(std::string text, tokenType type); //add token to the vector
-        void analyzeFile(std::string inputFile, std::string outputFile);
-
+        void analyzeFile(std::string inputFile);
+        std::vector<token> getFileTokens();
 
     private:
         TokenTable tokenTable;
         std::vector<token> fileTokens; //list, in order, of tokens and their appearance in the file
         void flushBuffer(std::string& buffer);
 };
+
+
 
 
 #endif //LEXER_H
