@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(preprocessor)
 add_subdirectory(lexer)
+add_subdirectory(parser)
 
 
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
