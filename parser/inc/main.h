@@ -5,6 +5,17 @@
 #ifndef PARSER_MAIN_H
 #define PARSER_MAIN_H
 
-int main(void);
+#include <vector>
+#include <stdio.h>
+#include <string>
+#include <utility>
+#include <memory>
+#include <fstream>
+
+
+int main(int argc, char* argv[]);
+
+std::vector<std::string> scanFileForTokens(std::string fileName);
+
 
 #endif

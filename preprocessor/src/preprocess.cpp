@@ -279,6 +279,7 @@ std::string PreProcessor::stripCommentSimple(std::string line) {
 }
 
 //this function is run before handing off lines for processing, to strip the line of any comments
+//this is the slightly improved version that can detect comments that appear beyond
 std::string PreProcessor::stripComment(std::string line) {
 	//actually dynamically strip comments
 
