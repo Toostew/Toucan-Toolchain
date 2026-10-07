@@ -11,11 +11,14 @@
 #include <utility>
 #include <memory>
 #include <fstream>
-
+#include <iostream>
+#include "TokenTable.h"
+#include "parser.h"
+#include <sstream>
 
 int main(int argc, char* argv[]);
 
-std::vector<std::string> scanFileForTokens(std::string fileName);
+std::vector<token> scanFileForTokens(std::string fileName);
 
 
 #endif
