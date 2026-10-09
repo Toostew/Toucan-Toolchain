@@ -10,6 +10,8 @@
 int main(int argc, char* argv[]) {
 
 
+
+
     return 0;
 }
 
@@ -77,5 +79,6 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
     //when a function returns a named local variable, the compiler is PERMITTED to construct it directly in
     //the caller's destination storage, so on the callee's termination, no copying or moving is needed at all.
     //So an std:move() isnt actually a good idea here, since it disables NRVO and performs a move
+    //which is actually worse than just letting it return raw value
 }
 
