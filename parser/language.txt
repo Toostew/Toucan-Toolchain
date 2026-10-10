@@ -1,0 +1,62 @@
+the language of this toolchain is a subset of C (inspired), and is defined using Context-Free-Grammar (CFG). Representation is done in Backus–Naur Form (BNF)
+
+Non-Terminals (NT):
+    NT = {Program, Function,
+     Block,
+     CompoundStatement, Statement,
+     IfStatement, WhileStatement, ForStatement, ReturnStatement, ExpressionStatement
+     Expression,
+     PlusMinusExpression, MultiplicativeExpression, UnaryExpression, BaseExpression,
+     LgAndExpression, LgOrExpression, LgEquality, LgComparator}
+
+
+//left side recursion enforces left side associativity
+//Assignment is special, since it is right associative
+<Expression> ::= <Identifier> "=" <Expression>
+                | <LgOrExpression>
+
+<LgOrExpression> ::= <LgOrExpression> "||" <LgAndExpression>
+                    | <LgAndExpression>
+
+<LgAndExpression> ::= <LgAndExpression> "&&" <LgEquality>
+                    | <LgEquality>
+
+<LgEquality> ::= <LgEquality> "==" <LgComparator>
+                | <LgEquality> "!=" <LgComparator>
+                | <LgComparator>
+
+<LgComparator> ::= <LgComparator> "<" <PlusMinusExpression>
+                | <LgComparator> ">" <PlusMinusExpression>
+                | <LgComparator> "<=" <PlusMinusExpression>
+                | <LgComparator> ">=" <PlusMinusExpression>
+                | <PlusMinusExpression>
+
+
+<PlusMinusExpression> ::= <PlusMinusExpression> + <MultiplicativeExpression>
+                        | <PlusMinusExpression> - <MultiplicativeExpression>
+                        | <MultiplicativeExpression>
+
+<MultiplicativeExpression> ::= <MultiplicativeExpression> * <UnaryExpression>
+                            | <MultiplicativeExpression> / <UnaryExpression>
+                            | <UnaryExpression>
+
+<UnaryExpression> ::= ! <UnaryExpression>
+                    | - <UnaryExpression>
+                    | <BaseExpression>
+
+<BaseExpression> ::= INT_LITERAL
+                    | <Identifier>
+                    | "true"
+                    | "false"
+                    | "(" <Expression> ")"
+
+
+Terminals/Symbols (T):
+    T = {"if","else","while","for","return",
+    "int","bool",
+    "+","-","*","/",
+    "&&","||","!","==","!=",">","<",">=","<=",
+    "=",
+    "true","false",
+    "(" , ")" , "{" , "}" , ";" , ","}
+
