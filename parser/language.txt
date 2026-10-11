@@ -2,61 +2,130 @@ the language of this toolchain is a subset of C (inspired), and is defined using
 
 Non-Terminals (NT):
     NT = {Program, Function,
-     Block,
+     Block, ParameterList, ParameterDeclaration, ArgumentList,
      CompoundStatement, Statement,
-     IfStatement, WhileStatement, ForStatement, ReturnStatement, ExpressionStatement
-     Expression,
+     IfStatement, WhileStatement, ForStatement, ReturnStatement, ExpressionStatement, VarDeclarationStatement,
+     Expression, VarDeclaration, ForInit, ForCondition, ForIncrement,
      PlusMinusExpression, MultiplicativeExpression, UnaryExpression, BaseExpression,
      LgAndExpression, LgOrExpression, LgEquality, LgComparator}
 
-
-//left side recursion enforces left side associativity
-//Assignment is special, since it is right associative
-<Expression> ::= <Identifier> "=" <Expression>
-                | <LgOrExpression>
-
-<LgOrExpression> ::= <LgOrExpression> "||" <LgAndExpression>
-                    | <LgAndExpression>
-
-<LgAndExpression> ::= <LgAndExpression> "&&" <LgEquality>
-                    | <LgEquality>
-
-<LgEquality> ::= <LgEquality> "==" <LgComparator>
-                | <LgEquality> "!=" <LgComparator>
-                | <LgComparator>
-
-<LgComparator> ::= <LgComparator> "<" <PlusMinusExpression>
-                | <LgComparator> ">" <PlusMinusExpression>
-                | <LgComparator> "<=" <PlusMinusExpression>
-                | <LgComparator> ">=" <PlusMinusExpression>
-                | <PlusMinusExpression>
-
-
-<PlusMinusExpression> ::= <PlusMinusExpression> + <MultiplicativeExpression>
-                        | <PlusMinusExpression> - <MultiplicativeExpression>
-                        | <MultiplicativeExpression>
-
-<MultiplicativeExpression> ::= <MultiplicativeExpression> * <UnaryExpression>
-                            | <MultiplicativeExpression> / <UnaryExpression>
-                            | <UnaryExpression>
-
-<UnaryExpression> ::= ! <UnaryExpression>
-                    | - <UnaryExpression>
-                    | <BaseExpression>
-
-<BaseExpression> ::= INT_LITERAL
-                    | <Identifier>
-                    | "true"
-                    | "false"
-                    | "(" <Expression> ")"
-
-
 Terminals/Symbols (T):
-    T = {"if","else","while","for","return",
+    T = {"if","else","while","for","return", "void",
     "int","bool",
     "+","-","*","/",
     "&&","||","!","==","!=",">","<",">=","<=",
     "=",
-    "true","false",
+    "true","false", "INT_LITERAL","IDENTIFIER",
     "(" , ")" , "{" , "}" , ";" , ","}
 
+
+Grammar/Production Rules (P):
+    //left side recursion enforces left side associativity
+    //Assignment is special, since it is right associative
+
+    <Program> ::= <Program> <Function>
+                | <Function>
+
+    <Function> ::= "int" "IDENTIFIER" "(" ")" <Block>
+                | "bool" "IDENTIFIER" "(" ")" <Block>
+                | "void" "IDENTIFIER" "(" ")" <Block>
+                | "int" "IDENTIFIER" "(" <ParameterList> ")" <Block>
+                | "bool" "IDENTIFIER" "(" <ParameterList> ")" <Block>
+                | "void" "IDENTIFIER" "(" <ParameterList> ")" <Block>
+
+    <Block> ::= "{" <CompoundStatement> "}"
+            | "{" "}"
+
+    <ParameterList> ::= <ParameterList> "," <ParameterDeclaration>
+                | <ParameterDeclaration>
+
+
+    <ParameterDeclaration> ::= "int" "IDENTIFIER"
+                            | "bool" "IDENTIFIER"
+
+    <ArgumentList> ::= <ArgumentList> "," <Expression>
+                    | <Expression>
+
+    <VarDeclarationStatement> ::= <VarDeclaration> ";"
+
+    <VarDeclaration> ::= "int" "IDENTIFIER" "=" <Expression>
+                    | "int" "IDENTIFIER"
+                    | "bool" "IDENTIFIER" "=" <Expression>
+                    | "bool" "IDENTIFIER"
+
+    <CompoundStatement> ::= <CompoundStatement> <Statement>
+                        | <Statement>
+
+    <Statement> ::= <IfStatement>
+                | <WhileStatement>
+                | <ForStatement>
+                | <ReturnStatement>
+                | <ExpressionStatement>
+                | <VarDeclarationStatement>
+
+    <IfStatement> ::= "if" "(" <Expression> ")" <Block>
+                    | "if" "(" <Expression> ")" <Block> "else" <Block>
+
+    <WhileStatement> ::= "while" "(" <Expression> ")" <Block>
+
+    <ForStatement> ::= "for" "(" <ForInit> ";" <ForCondition> ";" <ForIncrement> ")" <Block>
+
+    <ForInit> ::= <VarDeclaration>
+                | ""
+
+    <ForCondition> ::= <Expression>
+                    | ""
+
+    <ForIncrement> ::= <Expression>
+                    | ""
+
+    <ExpressionStatement> ::= <Expression> ";"
+
+    <ReturnStatement> ::= "return" <Expression> ";"
+                    | "return" ";"
+
+
+
+
+    <Expression> ::= "IDENTIFIER" "=" <Expression>
+                    | <LgOrExpression>
+
+    <LgOrExpression> ::= <LgOrExpression> "||" <LgAndExpression>
+                        | <LgAndExpression>
+
+    <LgAndExpression> ::= <LgAndExpression> "&&" <LgEquality>
+                        | <LgEquality>
+
+    <LgEquality> ::= <LgEquality> "==" <LgComparator>
+                    | <LgEquality> "!=" <LgComparator>
+                    | <LgComparator>
+
+    <LgComparator> ::= <LgComparator> "<" <PlusMinusExpression>
+                    | <LgComparator> ">" <PlusMinusExpression>
+                    | <LgComparator> "<=" <PlusMinusExpression>
+                    | <LgComparator> ">=" <PlusMinusExpression>
+                    | <PlusMinusExpression>
+
+
+    <PlusMinusExpression> ::= <PlusMinusExpression> "+" <MultiplicativeExpression>
+                            | <PlusMinusExpression> "-" <MultiplicativeExpression>
+                            | <MultiplicativeExpression>
+
+    <MultiplicativeExpression> ::= <MultiplicativeExpression> "*" <UnaryExpression>
+                                | <MultiplicativeExpression> "/" <UnaryExpression>
+                                | <UnaryExpression>
+
+    <UnaryExpression> ::= "!" <UnaryExpression>
+                        | "-" <UnaryExpression>
+                        | <BaseExpression>
+
+    <BaseExpression> ::= "INT_LITERAL"
+                        | "IDENTIFIER"
+                        | "IDENTIFIER" "(" ")" //function call no parameters
+                        | "IDENTIFIER" "(" <ArgumentList> ")" //function call with arguments
+                        | "true"
+                        | "false"
+                        | "(" <Expression> ")"
+
+Entrypoint (S):
+    S = {Program}

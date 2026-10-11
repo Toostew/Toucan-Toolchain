@@ -15,6 +15,7 @@ TokenTable::TokenTable() {
     addToken("while",tokenType::WHILE);
     addToken("for",tokenType::FOR);
     addToken("return",tokenType::RETURN);
+    addToken("void",tokenType::VOID);
 
     //reserved types
     addToken("int",tokenType::INT);

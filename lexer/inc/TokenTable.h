@@ -16,7 +16,7 @@
 
 enum class tokenType {
     //keywords/reserved general words
-    IF, ELSE, WHILE, FOR, RETURN,
+    IF, ELSE, WHILE, FOR, RETURN, VOID,
     //reserved type words
     INT, BOOL,
     //Operators
