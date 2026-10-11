@@ -65,6 +65,7 @@ Grammar/Production Rules (P):
 
     <IfStatement> ::= "if" "(" <Expression> ")" <Block>
                     | "if" "(" <Expression> ")" <Block> "else" <Block>
+                    | "if" "(" <Expression> ")" <Block> "else" <IfStatement>
 
     <WhileStatement> ::= "while" "(" <Expression> ")" <Block>
 
