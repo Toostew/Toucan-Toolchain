@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(parser src/main.cpp
         src/parser.cpp
         src/TokenTable.cpp
-        inc/Node.h)
+        src/Node.cpp)
 
 target_include_directories(parser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)

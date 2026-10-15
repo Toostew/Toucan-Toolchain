@@ -3,13 +3,19 @@
 //
 
 #include "main.h"
-
+#include "Node.h"
 
 
 
 int main(int argc, char* argv[]) {
+    Literal_BOOL boolExample;
+    Literal_INT intExample;
+    boolExample.value = true;
+    intExample.value = 200;
 
-
+    dumpVisitor dump;
+    boolExample.accept(dump);
+    intExample.accept(dump);
 
 
     return 0;
