@@ -72,13 +72,13 @@ Grammar/Production Rules (P):
     <ForStatement> ::= "for" "(" <ForInit> ";" <ForCondition> ";" <ForIncrement> ")" <Block>
 
     <ForInit> ::= <VarDeclaration>
-                | ""
+
 
     <ForCondition> ::= <Expression>
-                    | ""
+
 
     <ForIncrement> ::= <Expression>
-                    | ""
+
 
     <ExpressionStatement> ::= <Expression> ";"
 
