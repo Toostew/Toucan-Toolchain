@@ -12,37 +12,43 @@ void Literal_INT::accept(Visitor &visitor) {
     visitor.visit(*this);
 }
 
+Literal_INT::Literal_INT(int value) {
+    this->value = value;
+}
 
 
 
 
 
-void dumpVisitor::visit(Literal_BOOL& literal_bool) {
+
+
+
+void DumpVisitor::visit(Literal_BOOL& literal_bool) {
     std::cout << literal_bool.value << std::endl;
 }
 
-void dumpVisitor::visit(Literal_INT& literal_int) {
+void DumpVisitor::visit(Literal_INT& literal_int) {
     std::cout << literal_int.value << std::endl;
 }
 
-void dumpVisitor::visit(Block& block) {
+void DumpVisitor::visit(Block& block) {
 
 }
-void dumpVisitor::visit(Function& function){}
-void dumpVisitor::visit(Program& program){}
+void DumpVisitor::visit(Function& function){}
+void DumpVisitor::visit(Program& program){}
 
-void dumpVisitor::visit(IfStatement& ifStatement){}
-void dumpVisitor::visit(ForStatement& forStatement){}
-void dumpVisitor::visit(WhileStatement& whileStatement){}
-void dumpVisitor::visit(ReturnStatement& returnStatement){}
-void dumpVisitor::visit(ExpressStatement& expressStatement){}
-void dumpVisitor::visit(VarDeclarationStatement& varDeclarationStatement){}
+void DumpVisitor::visit(IfStatement& ifStatement){}
+void DumpVisitor::visit(ForStatement& forStatement){}
+void DumpVisitor::visit(WhileStatement& whileStatement){}
+void DumpVisitor::visit(ReturnStatement& returnStatement){}
+void DumpVisitor::visit(ExpressStatement& expressStatement){}
+void DumpVisitor::visit(VarDeclarationStatement& varDeclarationStatement){}
 
-void dumpVisitor::visit(UnaryExpression& unaryExpression){}
-void dumpVisitor::visit(BinaryExpression& binaryExpression){}
-void dumpVisitor::visit(AssignExpression& assignExpression){}
-void dumpVisitor::visit(VarReference& varReference){}
-void dumpVisitor::visit(Call& call){}
+void DumpVisitor::visit(UnaryExpression& unaryExpression){}
+void DumpVisitor::visit(BinaryExpression& binaryExpression){}
+void DumpVisitor::visit(AssignExpression& assignExpression){}
+void DumpVisitor::visit(VariableReference& variableReference){}
+void DumpVisitor::visit(Call& call){}
 
 
 

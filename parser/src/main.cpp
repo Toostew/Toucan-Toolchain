@@ -8,15 +8,10 @@
 
 
 int main(int argc, char* argv[]) {
-    Literal_BOOL boolExample;
-    Literal_INT intExample;
-    boolExample.value = true;
-    intExample.value = 200;
+    DumpVisitor dump;
 
-    dumpVisitor dump;
-    boolExample.accept(dump);
-    intExample.accept(dump);
-
+    std::unique_ptr<Expression> example = std::make_unique<Literal_INT>(Literal_INT(200));
+    example->accept(dump);
 
     return 0;
 }

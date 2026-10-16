@@ -13,6 +13,12 @@
 #include <cstdint>
 #include <iostream>
 
+class Visitor;
+class Block;
+class Expression;
+class IfStatement;
+class VarDeclarationStatement;
+
 //operators with 2 variables
 enum class BinaryOperator{
     ADD,
@@ -42,6 +48,20 @@ enum class VarType {
     UNKNOWN
 };
 
+enum class IfStatementType {
+    IF,
+    IFELSE,
+    IFELSEIF
+};
+
+typedef struct {
+    IfStatementType type;
+    std::unique_ptr<Expression> ifCondition;
+    std::unique_ptr<Block> ifBlock;
+    std::unique_ptr<Expression> elseBlock;
+    std::unique_ptr<IfStatement> elseIf;
+} IfStatementContent;
+
 
 typedef struct {
     VarType varType;
@@ -49,7 +69,6 @@ typedef struct {
 } Param;
 
 
-class Visitor;
 
 class Node {
 public:
@@ -63,21 +82,60 @@ class Expression : public Node {
 public:
     VarType varType = VarType::UNKNOWN; //init default to unknown
 };
-class UnaryExpression : public Expression {};
-class BinaryExpression : public Expression {};
-class AssignExpression : public Expression {};
+class UnaryExpression : public Expression {
+public:
+    UnaryOperator op;
+    std::unique_ptr<Expression> operand;
+
+    void accept(Visitor& visitor) override;
+    UnaryExpression(UnaryOperator op, std::unique_ptr<Expression> operand);
+};
+class BinaryExpression : public Expression {
+public:
+    BinaryOperator op;
+    std::unique_ptr<Expression> leftOperand;
+    std::unique_ptr<Expression> rightOperand;
+
+    void accept(Visitor& visitor) override;
+    BinaryExpression(BinaryOperator op, std::unique_ptr<Expression> leftOperand, std::unique_ptr<Expression> rightOperand);
+};
+class AssignExpression : public Expression {
+public:
+    std::string target;
+    std::unique_ptr<Expression> expression;
+
+    void accept(Visitor& visitor) override;
+    AssignExpression(std::string target, std::unique_ptr<Expression> expression);
+};
 class Literal_BOOL : public Expression {
 public:
-    void accept(Visitor& visitor);
     bool value;
+
+    void accept(Visitor& visitor) override;
+    Literal_BOOL(bool value);
 };
 class Literal_INT : public Expression {
 public:
-    void accept(Visitor& visitor);
     int value;
+
+    void accept(Visitor& visitor) override;
+    Literal_INT(int value);
 };
-class VarReference : public Expression {};
-class Call : public Expression {};
+class VariableReference : public Expression {
+public:
+    std::string varName;
+
+    void accept(Visitor& visitor) override;
+    VariableReference(std::string varName);
+};
+class Call : public Expression {
+public:
+    std::string functionName;
+    std::vector<std::unique_ptr<Expression>> arguments;
+
+    void accept(Visitor& visitor) override;
+    Call(std::string name, std::vector<std::unique_ptr<Expression>> arguments);
+};
 
 
 
@@ -85,26 +143,65 @@ class Call : public Expression {};
 class Statement : public Node {
 };
 
-class IfStatement : public Statement {};
-class WhileStatement : public Statement {};
-class ForStatement : public Statement {};
-class ReturnStatement : public Statement {};
-class ExpressStatement : public Statement {};
-class VarDeclarationStatement : public Statement {};
+class IfStatement : public Statement {
+public:
+    IfStatementType ifStatementType;
+    IfStatementContent ifStatementContent;
+
+    void accept(Visitor& visitor) override;
+    IfStatement(IfStatementType ifStatementType, IfStatementContent ifStatementContent);
+};
+class WhileStatement : public Statement {
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<Block> block;
+
+
+};
+class ForStatement : public Statement {
+    std::unique_ptr<VarDeclarationStatement> forInit;
+    std::unique_ptr<Expression> forCondition;
+    std::unique_ptr<Expression> forIncrement;
+    std::unique_ptr<Block> block;
+
+    void accept(Visitor &visitor) override;
+    ForStatement(std::unique_ptr<VarDeclarationStatement> forInit, std::unique_ptr<Expression> forCondition,std::unique_ptr<Expression> forIncrement, std::unique_ptr<Block> block);
+};
+class ReturnStatement : public Statement {
+    VarType returnType;
+    std::unique_ptr<Expression> returnExpression;
+
+    void accept(Visitor& visitor) override;
+    ReturnStatement(VarType returnType, std::unique_ptr<Expression> returnExpression);
+};
+class ExpressStatement : public Statement {
+    std::unique_ptr<Expression> expression;
+
+    void accept(Visitor& visitor) override;
+    ExpressStatement(std::unique_ptr<Expression> expression);
+};
+class VarDeclarationStatement : public Statement {
+    VarType varType;
+    std::string varName;
+
+    void accept(Visitor& visitor) override;
+    VarDeclarationStatement(VarType varType, std::string varName);
+};
 
 class Block : public Node {
 public:
     std::vector<std::unique_ptr<Statement>> statements;
 
-    void accept(Visitor& visitor);
+    void accept(Visitor& visitor) override;
+    Block(std::vector<std::unique_ptr<Statement>> statements);
 };
 
 class Function : public Node {
 public:
     Block functionBlock;
+    std::vector<Param> parameters;
 
-
-    void accept(Visitor& visitor);
+    void accept(Visitor& visitor) override;
+    Function(Block functionBlock, std::vector<Param> parameters);
 };
 
 class Program : public Node {
@@ -112,7 +209,8 @@ public:
     std::vector<std::unique_ptr<Function>> functions;
 
 
-    void accept(Visitor& visitor);
+    void accept(Visitor& visitor) override;
+    Program(std::vector<std::unique_ptr<Function>> functions);
 };
 
 class Visitor {
@@ -133,7 +231,7 @@ public:
     virtual void visit(AssignExpression& assignExpression) = 0;
     virtual void visit(Literal_BOOL& literalBool) = 0;
     virtual void visit(Literal_INT& literalInt) = 0;
-    virtual void visit(VarReference& varReference) = 0;
+    virtual void visit(VariableReference& variableReference) = 0;
     virtual void visit(Call& call) = 0;
 
 
@@ -141,28 +239,28 @@ public:
 };
 
 //print into console
-class dumpVisitor : public Visitor {
+class DumpVisitor : public Visitor {
 public:
-    virtual void visit(Block& block);
-    virtual void visit(Function& function);
-    virtual void visit(Program& program);
+    virtual void visit(Block& block) override;
+    virtual void visit(Function& function) override;
+    virtual void visit(Program& program) override;
     //statement
-    virtual void visit(IfStatement& ifStatement);
-    virtual void visit(ForStatement& forStatement);
-    virtual void visit(WhileStatement& whileStatement);
-    virtual void visit(ReturnStatement& returnStatement);
-    virtual void visit(ExpressStatement& expressStatement);
-    virtual void visit(VarDeclarationStatement& varDeclarationStatement);
+    virtual void visit(IfStatement& ifStatement) override;
+    virtual void visit(ForStatement& forStatement) override;
+    virtual void visit(WhileStatement& whileStatement) override;
+    virtual void visit(ReturnStatement& returnStatement) override;
+    virtual void visit(ExpressStatement& expressStatement) override;
+    virtual void visit(VarDeclarationStatement& varDeclarationStatement) override;
     //expression
-    virtual void visit(UnaryExpression& unaryExpression);
-    virtual void visit(BinaryExpression& binaryExpression);
-    virtual void visit(AssignExpression& assignExpression);
-    virtual void visit(Literal_BOOL& literalBool);
-    virtual void visit(Literal_INT& literalInt);
-    virtual void visit(VarReference& varReference);
-    virtual void visit(Call& call);
+    virtual void visit(UnaryExpression& unaryExpression) override;
+    virtual void visit(BinaryExpression& binaryExpression) override;
+    virtual void visit(AssignExpression& assignExpression) override;
+    virtual void visit(Literal_BOOL& literalBool) override;
+    virtual void visit(Literal_INT& literalInt) override;
+    virtual void visit(VariableReference& variableReference) override;
+    virtual void visit(Call& call) override;
 
-    virtual ~dumpVisitor() = default;
+    virtual ~DumpVisitor() = default;
 };
 
 #endif //NTR_TOOLCHAIN_NODE_H
