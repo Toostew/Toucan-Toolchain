@@ -10,9 +10,43 @@
 int main(int argc, char* argv[]) {
     DumpVisitor dump;
 
-    std::unique_ptr<Expression> example = std::make_unique<Literal_INT>(Literal_INT(200));
-    example->accept(dump);
+    std::unique_ptr<Expression> exampleA = std::make_unique<Literal_INT>(200);
+    std::unique_ptr<Expression> exampleB = std::make_unique<Literal_BOOL>(false);
+    std::unique_ptr<Expression> exampleC = std::make_unique<Literal_BOOL>(true);
 
+    std::vector<std::unique_ptr<Statement>> ifBlockStatementsOne;
+    std::vector<std::unique_ptr<Statement>> ifBlockStatementsTwo;
+    std::unique_ptr<Block> ifBlockOne = std::make_unique<Block>(std::move(ifBlockStatementsOne));
+    std::unique_ptr<Block> ifBlockTwo = std::make_unique<Block>(std::move(ifBlockStatementsTwo));
+
+
+    std::unique_ptr<Statement> exampleAStatement = std::make_unique<ExpressStatement>(std::move(exampleA));
+    std::unique_ptr<IfStatement> exampleCStatement = std::make_unique<IfStatement>(IfStatementType::IF, std::move(exampleC), std::move(ifBlockTwo), nullptr, nullptr);
+    std::unique_ptr<Statement> exampleDStatement = std::make_unique<IfStatement>(IfStatementType::IFELSEIF, std::move(exampleB),std::move(ifBlockOne),nullptr,std::move(exampleCStatement));
+
+
+
+    std::vector<std::unique_ptr<Statement>> statements;
+    statements.push_back(std::move(exampleAStatement));
+    statements.push_back(std::move(exampleDStatement));
+
+
+    std::unique_ptr<Block> block = std::make_unique<Block>(std::move(statements));
+
+    Param pOne = {VarType::BOOL,"truthness"};
+    Param pTwo = {VarType::INT,"hardness"};
+    std::vector<Param> parameters = {pOne, pTwo};
+
+    std::unique_ptr<Function> funcX = std::make_unique<Function>("funcX", *block,parameters,VarType::VOID);
+
+    std::vector<std::unique_ptr<Function>> functions;
+    functions.push_back(std::move(funcX));
+
+
+
+    Program start = Program(std::move(functions));
+
+    dump.visit(start);
     return 0;
 }
 

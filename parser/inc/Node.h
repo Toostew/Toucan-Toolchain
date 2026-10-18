@@ -247,12 +247,12 @@ public:
 class Function : public Node {
 public:
     std::string functionName;
+    VarType returnType;
     Block functionBlock;
     std::vector<Param> parameters;
-    VarType returnType;
 
     void accept(Visitor& visitor) override;
-    Function(std::string functionName, Block functionBlock, std::vector<Param> parameters, VarType returnType)
+    Function(std::string functionName, Block& functionBlock, std::vector<Param> parameters, VarType returnType)
         :functionName(std::move(functionName)), functionBlock(std::move(functionBlock)), parameters(std::move(parameters)), returnType(returnType){};
 };
 
@@ -294,6 +294,13 @@ public:
 //print into console
 class DumpVisitor : public Visitor {
 public:
+    uint32_t depth = 0;
+    void printIndent();
+    std::string getVarType(const VarType varType);
+    std::string getUnaryOperator(const UnaryOperator unaryOp);
+    std::string getBinaryOperator(const BinaryOperator binaryOp);
+
+
     void visit(Block& block) override;
     void visit(Function& function) override;
     void visit(Program& program) override;
