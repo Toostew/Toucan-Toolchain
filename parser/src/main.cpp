@@ -107,6 +107,9 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
         fileTokens.push_back(lineToken);
     }
 
+    token endToken = {"",tokenType::ENDOFFILE};
+
+    fileTokens.push_back(endToken); //add ENDOFFILE check
 
 
     return fileTokens;

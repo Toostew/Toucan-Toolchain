@@ -30,6 +30,9 @@ enum class tokenType {
     //reserved punctuation
     LPAREN, RPAREN, LBRACE, RBRACE, SEMICOLON, COMMA,
 
+    //EOF
+    ENDOFFILE,
+
     //Error type
     ERR
 };
