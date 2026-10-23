@@ -21,3 +21,9 @@ public:
         : std::runtime_error(message) {}
 
 };
+
+class noFunctions : public std::runtime_error {
+    public:
+        explicit noFunctions(const std::string& message)
+            : std::runtime_error(message) {}
+};

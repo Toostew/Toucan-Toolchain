@@ -11,14 +11,14 @@
 #include <string>
 #include <vector>
 
-
+#include "Node.h"
 
 
 enum class tokenType {
     //keywords/reserved general words
     IF, ELSE, WHILE, FOR, RETURN,
     //reserved type words
-    INT, BOOL,
+    INT, BOOL, VOID,
     //Operators
     PLUS, MINUS, MULTIPLY, DIVIDE,
     //logical Comparators
@@ -43,7 +43,7 @@ struct token {
 };
 
 std::string tokenTypeToString(const tokenType type);
-
+VarType tokenTypeToVarType(const tokenType type);
 
 class TokenTable {
     public:

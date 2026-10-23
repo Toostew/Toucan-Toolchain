@@ -186,4 +186,17 @@ std::string tokenTypeToString(const tokenType type) {
     }
 }
 
+VarType tokenTypeToVarType(const tokenType type) {
+    switch (type) {
+        case tokenType::INT:
+            return VarType::INT;
+        case tokenType::BOOL:
+            return VarType::BOOL;
+        case tokenType::VOID:
+            return VarType::VOID;
+        default:
+            return VarType::UNKNOWN;
+    }
+}
+
 

@@ -176,6 +176,7 @@ public:
     std::vector<std::unique_ptr<Statement>> statements;
 
     void accept(Visitor& visitor) override;
+    Block() = default;
     explicit Block(std::vector<std::unique_ptr<Statement>> statements)
         :statements(std::move(statements)){};
 };
