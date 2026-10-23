@@ -42,6 +42,8 @@ struct token {
     tokenType type;
 };
 
+std::string tokenTypeToString(const tokenType type);
+
 
 class TokenTable {
     public:

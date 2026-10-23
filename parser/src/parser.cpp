@@ -4,6 +4,8 @@
 
 
 #include "parser.h"
+#include "exceptions.h"
+
 
 token Parser::peek() {
     return tokens[pos];
@@ -16,8 +18,10 @@ bool Parser::check(const tokenType& type) {
 void Parser::advance() {
     if (!(peek().type == tokenType::ENDOFFILE)) {
         pos++;
+    } else {
+        //error handling: EOL
+        throw OutOfFile("Reached end of file before completing parsing");
     }
-    //error handling: EOL
 
 }
 
@@ -26,6 +30,8 @@ void Parser::expect(const tokenType& type) {
         advance();
     } else {
         //error handling here: not correct type
+        std::string message = "Expected " + tokenTypeToString(type) +", got " + tokenTypeToString(Parser::peek().type);
+        throw IncorrectTokenType("");
     }
 
 }
