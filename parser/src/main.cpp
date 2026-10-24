@@ -7,48 +7,9 @@
 
 
 
-int main(int argc, char* argv[]) {
-    DumpVisitor dump;
-
-    std::unique_ptr<Expression> exampleA = std::make_unique<Literal_INT>(200);
-    std::unique_ptr<Expression> exampleB = std::make_unique<Literal_BOOL>(false);
-    std::unique_ptr<Expression> exampleC = std::make_unique<Literal_BOOL>(true);
-
-    std::vector<std::unique_ptr<Statement>> ifBlockStatementsOne;
-    std::vector<std::unique_ptr<Statement>> ifBlockStatementsTwo;
-    std::unique_ptr<Block> ifBlockOne = std::make_unique<Block>(std::move(ifBlockStatementsOne));
-    std::unique_ptr<Block> ifBlockTwo = std::make_unique<Block>(std::move(ifBlockStatementsTwo));
-
-
-    std::unique_ptr<Statement> exampleAStatement = std::make_unique<ExpressStatement>(std::move(exampleA));
-    std::unique_ptr<IfStatement> exampleCStatement = std::make_unique<IfStatement>(IfStatementType::IF, std::move(exampleC), std::move(ifBlockTwo), nullptr, nullptr);
-    std::unique_ptr<Statement> exampleDStatement = std::make_unique<IfStatement>(IfStatementType::IFELSEIF, std::move(exampleB),std::move(ifBlockOne),nullptr,std::move(exampleCStatement));
 
 
 
-    std::vector<std::unique_ptr<Statement>> statements;
-    statements.push_back(std::move(exampleAStatement));
-    statements.push_back(std::move(exampleDStatement));
-
-
-    std::unique_ptr<Block> block = std::make_unique<Block>(std::move(statements));
-
-    Param pOne = {VarType::BOOL,"truthness"};
-    Param pTwo = {VarType::INT,"hardness"};
-    std::vector<Param> parameters = {pOne, pTwo};
-
-    std::unique_ptr<Function> funcX = std::make_unique<Function>("funcX", *block,parameters,VarType::VOID);
-
-    std::vector<std::unique_ptr<Function>> functions;
-    functions.push_back(std::move(funcX));
-
-
-
-    Program start = Program(std::move(functions));
-
-    dump.visit(start);
-    return 0;
-}
 
 
 //for the vast majority of data structs data is already on the heap.
@@ -95,7 +56,7 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
                 } else {
                     //ERR, shouldn't be here
                     //add anyway for processing later
-                    std::cerr << "Unknown directive at line:   " << currLineNum << std::endl;
+                    std::cerr << "Unknown directive " << issBuffer << "at line: " << currLineNum << std::endl;
                     lineToken.type = tokenType::ERR;
                 }
             }
@@ -119,4 +80,23 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
     //So an std:move() isnt actually a good idea here, since it disables NRVO and performs a move
     //which is actually worse than just letting it return raw value
 }
+
+
+
+
+
+
+int main(int argc, char* argv[]) {
+    std::vector<token> tokens = scanFileForTokens("tester.txt");
+    Parser parser = Parser(tokens);
+    std::unique_ptr<Program> program = parser.parseProgram();
+
+    DumpVisitor dumpVisitor = DumpVisitor();
+    dumpVisitor.visit(*program);
+
+    return 0;
+}
+
+
+
 

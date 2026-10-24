@@ -16,9 +16,12 @@
 #include "parser.h"
 #include <sstream>
 
+
+std::vector<token> scanFileForTokens(const std::string& fileName);
+
 int main(int argc, char* argv[]);
 
-std::vector<token> scanFileForTokens(std::string fileName);
+
 
 
 #endif

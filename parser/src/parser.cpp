@@ -58,22 +58,22 @@ std::unique_ptr<Function> Parser::parseFunction() {
 
     //parameter(s)
     std::vector<Param> params;
-    while (!(check(tokenType::RPAREN))) {
-        //[VarType] [identifier] [OPTIONAL: comma]
+    if (!(check(tokenType::RPAREN))) {
         params.push_back(parseParam());
 
-
-        //if there is a comma, expect another Param
-        if (check(tokenType::COMMA)) {
+        while (check(tokenType::COMMA)) {
             advance();
-        } else {
-            //if there is no comma it must be the end
-            expect(tokenType::RPAREN);
+            params.push_back(parseParam());
         }
     }
+    expect(tokenType::RPAREN);
     advance();
 
-    return std::make_unique<Function>(identifier,*parseBlock(),params,varType);
+
+
+    std::unique_ptr<Block> block = parseBlock();
+
+    return std::make_unique<Function>(identifier,std::move(*block),params,varType);
 
 }
 
@@ -93,7 +93,7 @@ std::unique_ptr<Block> Parser::parseBlock() {
     std::vector<std::unique_ptr<Statement>> statements;
     expect(tokenType::LBRACE);
     advance();
-    while (!check(tokenType::RBRACE)) {
+    while (!check(tokenType::RBRACE) && !check(tokenType::ENDOFFILE)) {
         token currToken = peek();
         switch (currToken.type) {
             case tokenType::IF:
@@ -104,21 +104,59 @@ std::unique_ptr<Block> Parser::parseBlock() {
                 break;
             case tokenType::FOR:
                 statements.push_back(parseForStatement());
+                break;
             case tokenType::RETURN:
                 statements.push_back(parseReturnStatement());
+                break;
             case tokenType::BOOL:
                 statements.push_back(parseVarDeclarationStatement());
+                break;
             case tokenType::INT:
                 statements.push_back(parseVarDeclarationStatement());
+                break;
             case tokenType::IDENTIFIER:
                 //could be a call, either func call or normal
-
-
+                statements.push_back(parseExpressStatement());
+                break;
+            default:
+                statements.push_back(parseExpressStatement());
+                break;
         }
-
-
+        advance();
     }
+    expect(tokenType::RBRACE);
+    advance();
+
+
+    return std::make_unique<Block>(std::move(statements));
 }
+
+std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() {
+    return nullptr;
+}
+
+std::unique_ptr<IfStatement> Parser::parseIfStatement() {
+    return nullptr;
+}
+
+std::unique_ptr<WhileStatement> Parser::parseWhileStatement() {
+    return nullptr;
+}
+
+std::unique_ptr<ForStatement> Parser::parseForStatement() {
+    return nullptr;
+}
+
+std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
+    return nullptr;
+}
+
+std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
+    return nullptr;
+}
+
+
+
 
 
 
@@ -147,9 +185,13 @@ bool Parser::check(const std::vector<tokenType>& types) {
 }
 
 void Parser::advance() {
+
+
     if (!(peek().type == tokenType::ENDOFFILE)) {
         pos++;
-    } else {
+    }
+
+    else {
         //error handling: EOL
         throw OutOfFile("Reached end of file before completing parsing");
     }

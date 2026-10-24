@@ -10,49 +10,51 @@
 //populate the tokenTable at class init
 TokenTable::TokenTable() {
     //reserved keywords
-    addToken("if",tokenType::IF);
-    addToken("else",tokenType::ELSE);
-    addToken("while",tokenType::WHILE);
-    addToken("for",tokenType::FOR);
-    addToken("return",tokenType::RETURN);
+    addToken("IF",tokenType::IF);
+    addToken("ELSE",tokenType::ELSE);
+    addToken("WHILE",tokenType::WHILE);
+    addToken("FOR",tokenType::FOR);
+    addToken("RETURN",tokenType::RETURN);
 
     //reserved types
-    addToken("int",tokenType::INT);
-    addToken("bool",tokenType::BOOL);
+    addToken("INT",tokenType::INT);
+    addToken("BOOL",tokenType::BOOL);
 
     //Operators
-    addToken("+", tokenType::PLUS);
-    addToken("-", tokenType::MINUS);
-    addToken("*", tokenType::MULTIPLY);
-    addToken("/", tokenType::DIVIDE);
+    addToken("PLUS", tokenType::PLUS);
+    addToken("MINUS", tokenType::MINUS);
+    addToken("MULTIPLY", tokenType::MULTIPLY);
+    addToken("DIVIDE", tokenType::DIVIDE);
 
     //Logical Op
-    addToken("&&", tokenType::LG_AND);
-    addToken("||", tokenType::LG_OR);
-    addToken("!", tokenType::LG_NOT);
-    addToken("==", tokenType::LG_EQUAL);
-    addToken("!=", tokenType::LG_N_EQUAL);
-    addToken(">", tokenType::LG_GREATER);
-    addToken("<", tokenType::LG_LESS);
-    addToken(">=", tokenType::LG_GREATER_EQUAL);
-    addToken("<=", tokenType::LG_LESS_EQUAL);
+    addToken("LG_AND", tokenType::LG_AND);
+    addToken("LG_OR", tokenType::LG_OR);
+    addToken("LG_NOT", tokenType::LG_NOT);
+    addToken("LG_EQUAL", tokenType::LG_EQUAL);
+    addToken("LG_N_EQUAL", tokenType::LG_N_EQUAL);
+    addToken("LG_GREATER", tokenType::LG_GREATER);
+    addToken("LG_LESS", tokenType::LG_LESS);
+    addToken("LG_GREATER_EQUAL", tokenType::LG_GREATER_EQUAL);
+    addToken("LG_LESS_EQUAL", tokenType::LG_LESS_EQUAL);
 
     //Assignment
-    addToken("=", tokenType::ASSIGNMENT);
+    addToken("ASSIGNMENT", tokenType::ASSIGNMENT);
 
     //Identifier and Literal
-    //addToken("", tokenType::); //we havent killed tokens
-    //addToken("", tokenType::);
-    addToken("true", tokenType::BOOL_TRUE);
-    addToken("false", tokenType::BOOL_FALSE);
+    addToken("TRUE", tokenType::BOOL_TRUE);
+    addToken("FALSE", tokenType::BOOL_FALSE);
 
     //reserved punctuation
-    addToken("(", tokenType::LPAREN);
-    addToken(")", tokenType::RPAREN);
-    addToken("{", tokenType::LBRACE);
-    addToken("}", tokenType::RBRACE);
-    addToken(";", tokenType::SEMICOLON);
-    addToken(",", tokenType::COMMA);
+    addToken("LPAREN", tokenType::LPAREN);
+    addToken("RPAREN", tokenType::RPAREN);
+    addToken("LBRACE", tokenType::LBRACE);
+    addToken("RBRACE", tokenType::RBRACE);
+    addToken("SEMICOLON", tokenType::SEMICOLON);
+    addToken("COMMA", tokenType::COMMA);
+
+    addToken("IDENTIFIER", tokenType::IDENTIFIER);
+    addToken("ENDOFFILE", tokenType::ENDOFFILE);
+    addToken("ERR", tokenType::ERR);
 
 }
 

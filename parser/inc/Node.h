@@ -253,7 +253,7 @@ public:
     std::vector<Param> parameters;
 
     void accept(Visitor& visitor) override;
-    Function(std::string functionName, Block& functionBlock, std::vector<Param> parameters, VarType returnType)
+    Function(std::string functionName, Block functionBlock, std::vector<Param> parameters, VarType returnType)
         :functionName(std::move(functionName)), functionBlock(std::move(functionBlock)), parameters(std::move(parameters)), returnType(returnType){};
 };
 
