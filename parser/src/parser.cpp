@@ -109,10 +109,7 @@ std::unique_ptr<Block> Parser::parseBlock() {
             case tokenType::RETURN:
                 statements.push_back(parseReturnStatement());
                 break;
-            case tokenType::BOOL:
-                statements.push_back(parseVarDeclarationStatement());
-                break;
-            case tokenType::INT:
+            case tokenType::BOOL: case tokenType::INT:
                 statements.push_back(parseVarDeclarationStatement());
                 break;
             case tokenType::IDENTIFIER:
@@ -139,6 +136,16 @@ std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() 
     std::string identifier = expect(tokenType::IDENTIFIER).text;
     advance();
     std::unique_ptr<Expression> expression = nullptr;
+
+    //init is REQUIRED for var declarations
+    expect(tokenType::ASSIGNMENT);
+    advance();
+    expression = std::move(parseExpression()); //
+    expect(tokenType::SEMICOLON);
+    advance();
+
+
+    /*
     if (check(tokenType::ASSIGNMENT)) {
         advance();
         expression = std::move(parseExpression()); //
@@ -148,7 +155,7 @@ std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() 
         expect(tokenType::SEMICOLON);
         advance();
     }
-
+    */
 
     return std::make_unique<VarDeclarationStatement>(varType, identifier, std::move(expression));
 }
@@ -161,6 +168,7 @@ std::unique_ptr<IfStatement> Parser::parseIfStatement() {
     advance();
     std::unique_ptr<Expression> ifCondition = std::move(parseExpression());
     expect(tokenType::RPAREN);
+    advance();
     std::unique_ptr<Block> ifBlock = std::move(parseBlock());
 
     //optional ELSE, ELSE IF
@@ -196,6 +204,7 @@ std::unique_ptr<WhileStatement> Parser::parseWhileStatement() {
     advance();
     std::unique_ptr<Expression> whileCondition = std::move(parseExpression());
     expect(tokenType::RPAREN);
+    advance();
     std::unique_ptr<Block> whileBlock = std::move(parseBlock());
 
     return std::make_unique<WhileStatement>(std::move(whileCondition),std::move(whileBlock));
@@ -207,14 +216,13 @@ std::unique_ptr<ForStatement> Parser::parseForStatement() {
     advance();
     expect(tokenType::LPAREN);
     advance();
-    std::unique_ptr<VarDeclarationStatement> forInit = std::move(parseVarDeclarationStatement());
-    expect(tokenType::SEMICOLON);
-    advance();
+    std::unique_ptr<VarDeclarationStatement> forInit = std::move(parseVarDeclarationStatement()); //already consumes semicolon
     std::unique_ptr<Expression> forCondition = std::move(parseExpression());
     expect(tokenType::SEMICOLON);
     advance();
     std::unique_ptr<Expression> forIncrement = std::move(parseExpression());
     expect(tokenType::RPAREN);
+    advance();
     std::unique_ptr<Block> forBlock = std::move(parseBlock()); //parse functions always advances to first unconsumed token
 
 
@@ -231,6 +239,8 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     if (!check(tokenType::SEMICOLON)) {
         returnValue = std::move(parseExpression());
     }
+    expect(tokenType::SEMICOLON);
+    advance();
 
     return std::make_unique<ReturnStatement>(std::move(returnValue));
 }

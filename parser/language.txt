@@ -48,10 +48,11 @@ Grammar/Production Rules (P):
 
     <VarDeclarationStatement> ::= <VarDeclaration> ";"
 
+//declarations require inits for v1
     <VarDeclaration> ::= "int" "IDENTIFIER" "=" <Expression>
-                    | "int" "IDENTIFIER"
                     | "bool" "IDENTIFIER" "=" <Expression>
-                    | "bool" "IDENTIFIER"
+
+
 
     <CompoundStatement> ::= <CompoundStatement> <Statement>
                         | <Statement>
