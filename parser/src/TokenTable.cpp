@@ -41,6 +41,7 @@ TokenTable::TokenTable() {
     addToken("ASSIGNMENT", tokenType::ASSIGNMENT);
 
     //Identifier and Literal
+    addToken("INT_LITERAL", tokenType::INT_LITERAL);
     addToken("TRUE", tokenType::BOOL_TRUE);
     addToken("FALSE", tokenType::BOOL_FALSE);
 

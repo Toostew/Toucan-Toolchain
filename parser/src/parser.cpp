@@ -5,6 +5,7 @@
 
 #include "parser.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "exceptions.h"
@@ -122,7 +123,7 @@ std::unique_ptr<Block> Parser::parseBlock() {
                 statements.push_back(parseExpressStatement());
                 break;
         }
-        advance();
+
     }
     expect(tokenType::RBRACE);
     advance();
@@ -132,27 +133,114 @@ std::unique_ptr<Block> Parser::parseBlock() {
 }
 
 std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() {
-    return nullptr;
+    //[varType] [identifier] [OPTIONAL [assignment] [expression] ]
+    VarType varType = tokenTypeToVarType(expect(std::vector<tokenType>({tokenType::INT, tokenType::BOOL})).type);
+    advance();
+    std::string identifier = expect(tokenType::IDENTIFIER).text;
+    advance();
+    std::unique_ptr<Expression> expression = nullptr;
+    if (check(tokenType::ASSIGNMENT)) {
+        advance();
+        expression = std::move(parseExpression()); //
+        expect(tokenType::SEMICOLON);
+        advance();
+    } else {
+        expect(tokenType::SEMICOLON);
+        advance();
+    }
+
+
+    return std::make_unique<VarDeclarationStatement>(varType, identifier, std::move(expression));
 }
 
 std::unique_ptr<IfStatement> Parser::parseIfStatement() {
-    return nullptr;
+    //[if] [(] [expression] [)] [block] [OPTIONAL: [ELSE] [IF]]
+    expect(tokenType::IF);
+    advance();
+    expect(tokenType::LPAREN);
+    advance();
+    std::unique_ptr<Expression> ifCondition = std::move(parseExpression());
+    expect(tokenType::RPAREN);
+    std::unique_ptr<Block> ifBlock = std::move(parseBlock());
+
+    //optional ELSE, ELSE IF
+    IfStatementType ifStatementType;
+    std::unique_ptr<IfStatement> ifStatement = nullptr;
+    std::unique_ptr<Block> elseBlock = nullptr;
+    if (check(tokenType::ELSE)) {
+        advance();
+
+        if (check(tokenType::IF)) {
+            //IF ELSE IF
+            ifStatement = std::move(parseIfStatement());
+            ifStatementType = IfStatementType::IFELSEIF;
+        } else {
+            //IF ELSE
+            elseBlock = std::move(parseBlock());
+            ifStatementType = IfStatementType::IFELSE;
+        }
+    } else {
+        // IF
+        ifStatementType = IfStatementType::IF;
+    }
+
+
+    return std::make_unique<IfStatement>(ifStatementType,std::move(ifCondition),std::move(ifBlock), std::move(elseBlock), std::move(ifStatement));
 }
 
 std::unique_ptr<WhileStatement> Parser::parseWhileStatement() {
-    return nullptr;
+    //[while] [(] [expression] [)] [block]
+    expect(tokenType::WHILE);
+    advance();
+    expect(tokenType::LPAREN);
+    advance();
+    std::unique_ptr<Expression> whileCondition = std::move(parseExpression());
+    expect(tokenType::RPAREN);
+    std::unique_ptr<Block> whileBlock = std::move(parseBlock());
+
+    return std::make_unique<WhileStatement>(std::move(whileCondition),std::move(whileBlock));
 }
 
 std::unique_ptr<ForStatement> Parser::parseForStatement() {
-    return nullptr;
+    //[for] [(] [forinit] [;] [forCondition] [;] [forIncrement] [)] [block]
+    expect(tokenType::FOR);
+    advance();
+    expect(tokenType::LPAREN);
+    advance();
+    std::unique_ptr<VarDeclarationStatement> forInit = std::move(parseVarDeclarationStatement());
+    expect(tokenType::SEMICOLON);
+    advance();
+    std::unique_ptr<Expression> forCondition = std::move(parseExpression());
+    expect(tokenType::SEMICOLON);
+    advance();
+    std::unique_ptr<Expression> forIncrement = std::move(parseExpression());
+    expect(tokenType::RPAREN);
+    std::unique_ptr<Block> forBlock = std::move(parseBlock()); //parse functions always advances to first unconsumed token
+
+
+    return std::make_unique<ForStatement>(std::move(forInit),std::move(forCondition),std::move(forIncrement), std::move(forBlock));
 }
 
 std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
-    return nullptr;
+    //[return] [OPTIONAL: [expression]] [;]
+    //void returns can do return;, int and bool needs the varType
+    expect(tokenType::RETURN);
+    advance();
+
+    std::unique_ptr<Expression> returnValue = nullptr;
+    if (!check(tokenType::SEMICOLON)) {
+        returnValue = std::move(parseExpression());
+    }
+
+    return std::make_unique<ReturnStatement>(std::move(returnValue));
 }
 
 std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
-    return nullptr;
+    std::unique_ptr<Expression> expression = std::move(parseExpression());
+    expect(tokenType::SEMICOLON);
+    advance();
+
+    return std::make_unique<ExpressStatement>(std::move(expression));
 }
 
 
@@ -211,6 +299,7 @@ token Parser::expect(const tokenType& type) {
 
 }
 
+//overloaded for multiple types
 token Parser::expect(const std::vector<tokenType>& types) {
     token currToken = peek();
     for (const tokenType& type : types) {

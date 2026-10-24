@@ -56,7 +56,7 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
                 } else {
                     //ERR, shouldn't be here
                     //add anyway for processing later
-                    std::cerr << "Unknown directive " << issBuffer << "at line: " << currLineNum << std::endl;
+                    std::cerr << "Unknown directive " << issBuffer << " at line: " << currLineNum << std::endl;
                     lineToken.type = tokenType::ERR;
                 }
             }
