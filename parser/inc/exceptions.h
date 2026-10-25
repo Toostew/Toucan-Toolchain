@@ -22,8 +22,20 @@ public:
 
 };
 
+class InvalidAssignmentTarget : public std::runtime_error {
+public:
+    explicit InvalidAssignmentTarget(const std::string& message)
+        : std::runtime_error(message) {}
+};
+
 class noFunctions : public std::runtime_error {
     public:
         explicit noFunctions(const std::string& message)
             : std::runtime_error(message) {}
+};
+
+class genericIssue : public std::runtime_error {
+    public:
+    explicit genericIssue(const std::string& message)
+        : std::runtime_error(message) {}
 };

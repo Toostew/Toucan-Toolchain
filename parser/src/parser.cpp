@@ -263,6 +263,238 @@ std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
 
 
 
+std::unique_ptr<Expression> Parser::parseExpression() {
+    std::unique_ptr<Expression> left = std::move(parseLgOR());
+
+    //could be a variable reference, we need to catch a potential assignment
+    if (check(tokenType::ASSIGNMENT)) {
+        auto* target = dynamic_cast<VariableReference*>(left.get());
+        if (target == nullptr) {
+            throw InvalidAssignmentTarget("Invalid assignment target");
+        }
+        advance();
+        std::unique_ptr<Expression> value = std::move(parseExpression()); //advances
+        return std::make_unique<AssignExpression>(target->varName, std::move(value));
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseLgOR() {
+    std::unique_ptr<Expression> left = std::move(parseLgAND());
+
+    //this will solve parsing sequential ORs
+    while (check(tokenType::LG_OR)) {
+        advance();
+        std::unique_ptr<Expression> right = std::move(parseLgAND());
+        left = std::make_unique<BinaryExpression>(BinaryOperator::OR, std::move(left), std::move(right));
+    }
+
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseLgAND() {
+    std::unique_ptr<Expression> left = std::move(parseLgEquality());
+
+    //solves sequential ANDs
+    while (check(tokenType::LG_AND)) {
+        advance();
+        std::unique_ptr<Expression> right = std::move(parseLgEquality());
+        left = std::make_unique<BinaryExpression>(BinaryOperator::AND, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseLgEquality() {
+    std::unique_ptr<Expression> left = std::move(parseLgComparator());
+
+    //solves sequential equality checks
+    while (check(std::vector<tokenType>({tokenType::LG_EQUAL, tokenType::LG_N_EQUAL}))) {
+        token curr = peek();
+        advance();
+        std::unique_ptr<Expression> right = std::move(parseLgComparator()); //advances
+
+        if (curr.type == tokenType::LG_EQUAL) {
+            left = std::make_unique<BinaryExpression>(BinaryOperator::EQUAL, std::move(left), std::move(right));
+        } else {
+            left = std::make_unique<BinaryExpression>(BinaryOperator::NOTEQUAL, std::move(left), std::move(right));
+        }
+
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseLgComparator() {
+    std::unique_ptr<Expression> left = std::move(parsePlusMinus());
+
+    //solves sequential comparators
+    while (check(std::vector<tokenType>({tokenType::LG_GREATER, tokenType::LG_GREATER_EQUAL, tokenType::LG_LESS, tokenType::LG_LESS_EQUAL}))) {
+        token curr = peek();
+        advance();
+        std::unique_ptr<Expression> right = std::move(parsePlusMinus()); //advances
+
+        switch (curr.type) {
+            case tokenType::LG_GREATER:
+                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHAN, std::move(left), std::move(right));
+                break;
+            case tokenType::LG_GREATER_EQUAL:
+                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHANOREQUAL, std::move(left), std::move(right));
+                break;
+            case tokenType::LG_LESS:
+                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHAN, std::move(left), std::move(right));
+                break;
+            case tokenType::LG_LESS_EQUAL:
+                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHANOREQUAL, std::move(left), std::move(right));
+                break;
+            default:
+                //throw error, though this is not possible to reach
+                break;
+        }
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parsePlusMinus() {
+    std::unique_ptr<Expression> left = std::move(parseMultiplication());
+
+    //solves sequential plus and minus
+    while (check(std::vector<tokenType>({tokenType::PLUS, tokenType::MINUS}))) {
+        token curr = peek();
+        advance();
+        std::unique_ptr<Expression> right = std::move(parseMultiplication()); //advances
+
+        if (curr.type == tokenType::PLUS) {
+            left = std::make_unique<BinaryExpression>(BinaryOperator::PLUS, std::move(left), std::move(right));
+        } else {
+            //minus
+            left = std::make_unique<BinaryExpression>(BinaryOperator::MINUS, std::move(left), std::move(right));
+        }
+    }
+
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseMultiplication() {
+    std::unique_ptr<Expression> left = std::move(parseUnary());
+
+    //solves sequential multiplications
+    while (check(std::vector<tokenType>({tokenType::MULTIPLY, tokenType::DIVIDE}))) {
+        token curr = peek();
+        advance();
+        std::unique_ptr<Expression> right = std::move(parseUnary()); //advances
+
+        if (curr.type == tokenType::MULTIPLY) {
+            left = std::make_unique<BinaryExpression>(BinaryOperator::MULTIPLY, std::move(left), std::move(right));
+        } else {
+            left = std::make_unique<BinaryExpression>(BinaryOperator::DIVIDE, std::move(left), std::move(right));
+        }
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parseUnary() {
+    //check for potential NOT or negative
+    std::unique_ptr<Expression> operand;
+    if (check(std::vector<tokenType>({tokenType::MINUS, tokenType::LG_NOT}))) {
+        token curr = peek();
+        advance();
+
+        if (curr.type == tokenType::MINUS) {
+            //MINUS
+            operand = std::make_unique<UnaryExpression>(UnaryOperator::NEGATIVE, std::move(parseUnary()));
+        } else {
+            //NOT
+            operand = std::make_unique<UnaryExpression>(UnaryOperator::NOT, std::move(parseUnary()));
+        }
+
+
+    } else {
+        //no negative or NOT
+        operand = std::move(parseBase());
+    }
+
+    return operand;
+}
+
+std::unique_ptr<Expression> Parser::parseBase() {
+    token curr = peek();
+    std::unique_ptr<Expression> base;
+    std::vector<std::unique_ptr<Expression>> args;
+    switch (curr.type) {
+        case tokenType::INT_LITERAL:
+            try  {
+                std::stoi(curr.text);
+            } catch (const std::out_of_range& e) {
+                throw genericIssue("Int literal exceeds 32bit signed size limit");
+            }
+            base = std::make_unique<Literal_INT>(std::stoi(curr.text));
+            advance();
+            break;
+        case tokenType::BOOL_FALSE:
+            base = std::make_unique<Literal_BOOL>(false);
+            advance();
+            break;
+        case tokenType::BOOL_TRUE:
+            base = std::make_unique<Literal_BOOL>(true);
+            advance();
+            break;
+        case tokenType::IDENTIFIER:
+            //either func or var
+            advance();
+            if (check(tokenType::LPAREN)) {
+                advance();
+                if (check(tokenType::RPAREN)) {
+                    //no args
+                    advance();
+                    base = std::make_unique<Call>(curr.text, std::move(args));
+                } else {
+                    //args
+                    args.push_back(std::move(parseExpression()));
+                    while (check(tokenType::COMMA)) {
+                        advance();
+                        args.push_back(std::move(parseExpression()));
+                    }
+                    expect(tokenType::RPAREN);
+                    advance();
+                    base = std::make_unique<Call>(curr.text, std::move(args));
+                }
+
+            } else{
+                //var reference
+                base = std::make_unique<VariableReference>(curr.text);
+            }
+            break;
+
+        case tokenType::LPAREN:
+            advance();
+            base = std::move(parseExpression());
+            expect(tokenType::RPAREN);
+            advance();
+            break;
+        default:
+            //error out
+            throw IncorrectTokenType("Expected literal int or bool, function call or variable reference, got " + tokenTypeToString(curr.type));
+            break;
+
+    }
+    return base;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 token Parser::peek() {

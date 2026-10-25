@@ -276,8 +276,8 @@ std::string DumpVisitor::getUnaryOperator(const UnaryOperator unaryOp) {
 
 std::string DumpVisitor::getBinaryOperator(const BinaryOperator binaryOp) {
     switch (binaryOp) {
-        case BinaryOperator::ADD:
-            return "ADD";
+        case BinaryOperator::PLUS:
+            return "PLUS";
         case BinaryOperator::MINUS:
             return "MINUS";
         case BinaryOperator::MULTIPLY:

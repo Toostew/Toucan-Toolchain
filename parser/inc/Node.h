@@ -22,7 +22,7 @@ class IfStatement;
 
 //operators with 2 variables
 enum class BinaryOperator{
-    ADD,
+    PLUS,
     MINUS,
     MULTIPLY,
     DIVIDE,
