@@ -205,14 +205,14 @@ void DumpVisitor::visit(VarDeclarationStatement& varDeclarationStatement) {
 
 void DumpVisitor::visit(UnaryExpression& unaryExpression) {
     printIndent();
-    std::cout << getUnaryOperator(unaryExpression.op) << "\n";
+    std::cout << "UNARY " << getUnaryOperator(unaryExpression.op) << "\n";
     depth++;
     unaryExpression.operand->accept(*this);
     depth--;
 }
 void DumpVisitor::visit(BinaryExpression& binaryExpression) {
     printIndent();
-    std::cout << getBinaryOperator(binaryExpression.op) << "\n";
+    std::cout << "OP " <<getBinaryOperator(binaryExpression.op) << "\n";
     depth++;
     binaryExpression.leftOperand->accept(*this);
     binaryExpression.rightOperand->accept(*this);
@@ -227,12 +227,13 @@ void DumpVisitor::visit(AssignExpression& assignExpression) {
 }
 void DumpVisitor::visit(VariableReference& variableReference) {
     printIndent();
-    std::cout << variableReference.varName << "\n";
+    std::cout << "VAR " << variableReference.varName << "\n";
 }
 void DumpVisitor::visit(Call& call) {
     printIndent();
-    std::cout << call.functionName << "\n";
+    std::cout << "CALL " << call.functionName << "\n";
     depth++;
+    printIndent();
     std::cout << "ARGS" << "\n";
     depth ++;
     for (const std::unique_ptr<Expression>& arg : call.arguments) {

@@ -19,6 +19,7 @@ TokenTable::TokenTable() {
     //reserved types
     addToken("INT",tokenType::INT);
     addToken("BOOL",tokenType::BOOL);
+    addToken("VOID", tokenType::VOID);
 
     //Operators
     addToken("PLUS", tokenType::PLUS);
@@ -42,8 +43,8 @@ TokenTable::TokenTable() {
 
     //Identifier and Literal
     addToken("INT_LITERAL", tokenType::INT_LITERAL);
-    addToken("TRUE", tokenType::BOOL_TRUE);
-    addToken("FALSE", tokenType::BOOL_FALSE);
+    addToken("BOOL_TRUE", tokenType::BOOL_TRUE);
+    addToken("BOOL_FALSE", tokenType::BOOL_FALSE);
 
     //reserved punctuation
     addToken("LPAREN", tokenType::LPAREN);

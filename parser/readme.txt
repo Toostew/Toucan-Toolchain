@@ -2,6 +2,9 @@ this is the readme for the parser covering design choices and logic
 
 This parser is a recursive descent parser (top to bottom) with LL(1).
 
+NOTE: though not a parser issue, the lexer creates identifiers through a very lax rule, any non-keyword seperated by space is considered an identifier,
+so stuff like !-!helloreturn is considered an identifier
+
 Recursive descent parsing involves recursive function calls, with lower precedent calls occuring first, and higher precedent
 calls occuring down the call chain.
 
