@@ -12,8 +12,10 @@ void outputWriter(const std::string& outputFileName, const std::vector<token>& t
 
     std::ofstream outputFile(outputFileName);
 
+
+    size_t line = 1;
     for (const token& tokenEntry : tokens) {
-        outputFile << tokenTypeToString(tokenEntry) << " " << tokenEntry.text << "\n";
+        outputFile << tokenTypeToString(tokenEntry) << " " << tokenEntry.text << " "<< tokenEntry.line << "\n";
     }
 }
 

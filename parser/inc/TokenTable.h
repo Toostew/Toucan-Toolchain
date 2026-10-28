@@ -40,6 +40,7 @@ enum class tokenType {
 struct token {
     std::string text;
     tokenType type;
+    size_t line;
 };
 
 std::string tokenTypeToString(const tokenType type);

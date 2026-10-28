@@ -15,6 +15,8 @@
 
 
 class Lexer {
+    size_t line = 0;
+
     public:
         void addTokenToVector(std::string text, tokenType type); //add token to the vector
         void analyzeFile(std::string inputFile);

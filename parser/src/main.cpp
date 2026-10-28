@@ -38,13 +38,13 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
         std::istringstream inputStream(inputFileBuffer);
         token lineToken;
 
-        //istringstream reads strings delimmited by spaces, which we designed around this logic
+        //istringstream reads strings delimited by spaces, which we designed around this logic
         //currently our expected input is always [TYPE] [CONTENT]
         //if the count is lower than expected, error out. if higher, ignore
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             if (!(inputStream >> issBuffer)) {
                 //less than 2 substrings, error out
-                std::cerr << "Not enough Directives at line:   " << currLineNum << std::endl;
+                std::cerr << "Not enough Directives at lexer file line:   " << currLineNum << std::endl;
                 exit(30); //code 30 is for issues in directive detection
             }
             if (i == 0) {
@@ -56,12 +56,24 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
                 } else {
                     //ERR, shouldn't be here
                     //add anyway for processing later
-                    std::cerr << "Unknown directive " << issBuffer << " at line: " << currLineNum << std::endl;
+                    std::cerr << "Unknown directive " << issBuffer << " at lexer file line: " << currLineNum << std::endl;
                     lineToken.type = tokenType::ERR;
                 }
             }
-            else {
+            else if (i == 1){
                 lineToken.text = issBuffer; //content part
+            }
+            else {
+                try {
+                    //Convert to unsigned long long, 2. Safely cast to size_t
+                    lineToken.line = static_cast<size_t>(std::stoull(issBuffer));
+                }
+                catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument: Not a valid number." << std::endl;
+                }
+                catch (const std::out_of_range& e) {
+                    std::cerr << "Out of range: Number is too large." << std::endl;
+                }
             }
 
         }

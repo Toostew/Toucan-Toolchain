@@ -11,6 +11,7 @@ void Lexer::addTokenToVector(std::string text, tokenType type) {
     token tempToken;
     tempToken.text = text;
     tempToken.type = type;
+    tempToken.line = line;
     fileTokens.push_back(tempToken);
 }
 
@@ -40,6 +41,7 @@ void Lexer::analyzeFile(std::string inputFile) {
     std::string line;
     std::ifstream readFile(inputFile);
 
+
     if (!readFile.is_open()) {
         //file failed to open, error out
         std::cerr << "Error opening file: " << inputFile << std::endl;
@@ -47,7 +49,7 @@ void Lexer::analyzeFile(std::string inputFile) {
     }
 
     while (std::getline(readFile, line)) {
-
+        Lexer::line++;
         size_t pos = 0;
         std::string buffer = "";
 
