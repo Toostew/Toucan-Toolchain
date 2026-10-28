@@ -87,12 +87,19 @@ std::vector<token> scanFileForTokens(const std::string& fileName) {
 
 
 int main(int argc, char* argv[]) {
-    std::vector<token> tokens = scanFileForTokens("tester.txt");
-    Parser parser = Parser(tokens);
-    std::unique_ptr<Program> program = parser.parseProgram();
 
-    DumpVisitor dumpVisitor = DumpVisitor();
-    dumpVisitor.visit(*program);
+    if (argc < 2 || argc > 2) {
+        std::cerr << "parser <filename>" << std::endl;
+    } else {
+        std::vector<token> tokens = scanFileForTokens(argv[1]);
+        Parser parser = Parser(tokens);
+        std::unique_ptr<Program> program = parser.parseProgram();
+
+        DumpVisitor dumpVisitor = DumpVisitor();
+        dumpVisitor.visit(*program);
+
+    }
+
 
     return 0;
 }

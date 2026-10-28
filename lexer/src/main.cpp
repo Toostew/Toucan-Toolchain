@@ -36,6 +36,9 @@ std::string tokenTypeToString(token token) {
         case tokenType::RETURN:
             return "RETURN";
             break;
+        case tokenType::VOID:
+            return "VOID";
+            break;
         case tokenType::INT:
             return "INT";
             break;
