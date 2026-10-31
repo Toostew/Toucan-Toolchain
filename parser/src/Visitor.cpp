@@ -11,17 +11,20 @@
 
 void DumpVisitor::visit(Literal_BOOL& literal_bool) {
     printIndent();
-    std::cout << "BOOL " <<(literal_bool.value ? "TRUE" : "FALSE") << "\n";
+    std::cout << "BOOL " <<(literal_bool.value ? "TRUE" : "FALSE") << " ";
+    printLines(literal_bool.lines);
 }
 
 void DumpVisitor::visit(Literal_INT& literal_int) {
     printIndent();
-    std::cout << "INT " << literal_int.value << "\n";
+    std::cout << "INT " << literal_int.value << " ";
+    printLines(literal_int.lines);
 }
 
 void DumpVisitor::visit(Block& block) {
     printIndent();
-    std::cout << "BLOCK" << "\n";
+    std::cout << "BLOCK ";
+    printLines(block.lines);
 
     depth++;
     for (const std::unique_ptr<Statement>& statement : block.statements) {
@@ -39,8 +42,9 @@ void DumpVisitor::visit(Function& function) {
             std::cout << ", ";
         }
     }
-    std::cout << ")";
-    std::cout << "(" << getVarType(function.returnType) << ")" << "\n";
+    std::cout << ") ";
+    std::cout << "(" << getVarType(function.returnType) << ") ";
+    printLines(function.lines);
     depth++;
     function.functionBlock.accept(*this);
     depth--;
@@ -57,7 +61,8 @@ void DumpVisitor::visit(Program& program) {
 
 void DumpVisitor::visit(IfStatement& ifStatement) {
     printIndent();
-    std::cout << "IF" << "\n";
+    std::cout << "IF" << " ";
+    printLines(ifStatement.lines);
     depth++;
     printIndent();
     std::cout << "COND" << "\n";
@@ -91,7 +96,8 @@ void DumpVisitor::visit(IfStatement& ifStatement) {
 }
 void DumpVisitor::visit(ForStatement& forStatement) {
     printIndent();
-    std::cout << "FOR" << "\n";
+    std::cout << "FOR" << " ";
+    printLines(forStatement.lines);
     depth++;
     printIndent();
     std::cout << "INIT" << "\n";
@@ -113,7 +119,8 @@ void DumpVisitor::visit(ForStatement& forStatement) {
 }
 void DumpVisitor::visit(WhileStatement& whileStatement) {
     printIndent();
-    std::cout << "WHILE" << "\n";
+    std::cout << "WHILE" << " ";
+    printLines(whileStatement.lines);
     depth++;
     printIndent();
     std::cout << "COND" << "\n";
@@ -125,7 +132,8 @@ void DumpVisitor::visit(WhileStatement& whileStatement) {
 }
 void DumpVisitor::visit(ReturnStatement& returnStatement) {
     printIndent();
-    std::cout << "RETURN" << "\n";
+    std::cout << "RETURN" << " ";
+    printLines(returnStatement.lines);
     depth++;
     if (returnStatement.returnExpression) {
         //is populated
@@ -138,14 +146,16 @@ void DumpVisitor::visit(ReturnStatement& returnStatement) {
 }
 void DumpVisitor::visit(ExpressStatement& expressStatement) {
     printIndent();
-    std::cout << "EXPRESS STATEMENT" << "\n";
+    std::cout << "EXPRESS STATEMENT" << " ";
+    printLines(expressStatement.lines);
     depth++;
     expressStatement.expression->accept(*this);
     depth--;
 }
 void DumpVisitor::visit(VarDeclarationStatement& varDeclarationStatement) {
     printIndent();
-    std::cout << "VAR DECLARATION " << getVarType(varDeclarationStatement.varType) << " " << varDeclarationStatement.varName << "\n";
+    std::cout << "VAR DECLARATION " << getVarType(varDeclarationStatement.varType) << " " << varDeclarationStatement.varName << " ";
+    printLines(varDeclarationStatement.lines);
     depth++;
     varDeclarationStatement.expression->accept(*this);
     depth--;
@@ -153,14 +163,16 @@ void DumpVisitor::visit(VarDeclarationStatement& varDeclarationStatement) {
 
 void DumpVisitor::visit(UnaryExpression& unaryExpression) {
     printIndent();
-    std::cout << "UNARY " << getUnaryOperator(unaryExpression.op) << "\n";
+    std::cout << "UNARY " << getUnaryOperator(unaryExpression.op) << " ";
+    printLines(unaryExpression.lines);
     depth++;
     unaryExpression.operand->accept(*this);
     depth--;
 }
 void DumpVisitor::visit(BinaryExpression& binaryExpression) {
     printIndent();
-    std::cout << "OP " <<getBinaryOperator(binaryExpression.op) << "\n";
+    std::cout << "OP " <<getBinaryOperator(binaryExpression.op) << " ";
+    printLines(binaryExpression.lines);
     depth++;
     binaryExpression.leftOperand->accept(*this);
     binaryExpression.rightOperand->accept(*this);
@@ -168,18 +180,21 @@ void DumpVisitor::visit(BinaryExpression& binaryExpression) {
 }
 void DumpVisitor::visit(AssignExpression& assignExpression) {
     printIndent();
-    std::cout << "ASSIGN " << assignExpression.target << "\n";
+    std::cout << "ASSIGN " << assignExpression.target << " ";
+    printLines(assignExpression.lines);
     depth++;
     assignExpression.expression->accept(*this);
     depth--;
 }
 void DumpVisitor::visit(VariableReference& variableReference) {
     printIndent();
-    std::cout << "VAR " << variableReference.varName << "\n";
+    std::cout << "VAR " << variableReference.varName << " ";
+    printLines(variableReference.lines);
 }
 void DumpVisitor::visit(Call& call) {
     printIndent();
-    std::cout << "CALL " << call.functionName << "\n";
+    std::cout << "CALL " << call.functionName << " ";
+    printLines(call.lines);
     depth++;
     printIndent();
     std::cout << "ARGS" << "\n";
@@ -198,6 +213,18 @@ void DumpVisitor::printIndent() {
         std::cout << "  "; //double space
     }
 }
+
+void DumpVisitor::printLines(std::pair<size_t,size_t> lines) {
+    if (lines.first == lines.second) {
+        //single line
+        std::cout << "[" << lines.first << "]"<<"\n";
+    } else {
+        //multiple lines
+        std::cout << "[" << lines.first << "," << lines.second << "]"<<"\n";
+    }
+}
+
+
 
 std::string DumpVisitor::getVarType(const VarType varType) {
     switch (varType) {

@@ -50,6 +50,7 @@ class DumpVisitor : public Visitor {
 public:
     uint32_t depth = 0;
     void printIndent();
+    void printLines(std::pair<size_t,size_t> lines);
     std::string getVarType(const VarType varType);
     std::string getUnaryOperator(const UnaryOperator unaryOp);
     std::string getBinaryOperator(const BinaryOperator binaryOp);
