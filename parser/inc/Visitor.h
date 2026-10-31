@@ -8,6 +8,18 @@
 #include "Node.h"
 
 
+typedef struct {
+    std::vector<Param> parameters;
+    VarType returnType;
+
+}  functionMD; //functionMetaData
+
+typedef struct {
+    std::string message;
+    size_t line;
+
+} error;
+
 class Visitor {
 public:
     virtual void visit(Block& block) = 0;
@@ -64,6 +76,45 @@ public:
 
     virtual ~DumpVisitor() = default;
 };
+
+
+//check if the AST follows rules
+class SemanticVisitor : public Visitor {
+    std::unordered_map<std::string, functionMD> functionTable;
+    std::vector<std::string> errors;
+
+
+    void functionSignatureCheck(Program& program);
+
+
+    void visit(Block& block) override;
+    void visit(Function& function) override;
+    void visit(Program& program) override;
+    //statement
+    void visit(IfStatement& ifStatement) override;
+    void visit(ForStatement& forStatement) override;
+    void visit(WhileStatement& whileStatement) override;
+    void visit(ReturnStatement& returnStatement) override;
+    void visit(ExpressStatement& expressStatement) override;
+    void visit(VarDeclarationStatement& varDeclarationStatement) override;
+    //expression
+    void visit(UnaryExpression& unaryExpression) override;
+    void visit(BinaryExpression& binaryExpression) override;
+    void visit(AssignExpression& assignExpression) override;
+    void visit(Literal_BOOL& literalBool) override;
+    void visit(Literal_INT& literalInt) override;
+    void visit(VariableReference& variableReference) override;
+    void visit(Call& call) override;
+
+    virtual ~SemanticVisitor() = default;
+
+
+
+};
+
+
+
+
 
 
 

@@ -8,6 +8,7 @@
 #include "exceptions.h"
 
 std::unique_ptr<Program> Parser::parseProgram() {
+    //by default, there is only one Program, and it is always line 0
     std::vector<std::unique_ptr<Function>> functions;
 
     while (!check(tokenType::ENDOFFILE)) {
@@ -18,7 +19,7 @@ std::unique_ptr<Program> Parser::parseProgram() {
         throw noFunctions("No functions declared in program, must have at least 1");
     }
 
-    return std::make_unique<Program>(std::move(functions));
+    return std::make_unique<Program>(std::move(functions),std::pair<size_t,size_t>(0,0));
 }
 
 std::unique_ptr<Function> Parser::parseFunction() {
@@ -31,8 +32,10 @@ std::unique_ptr<Function> Parser::parseFunction() {
     //vartype
     VarType varType;
     token currToken = peek();
+    size_t startLine;
     if ((currToken.type == tokenType::BOOL) || (currToken.type == tokenType::INT) || (currToken.type == tokenType::VOID)) {
        varType = tokenTypeToVarType(currToken.type);
+        startLine = currToken.line;
     } else {
         //expected varType, error
         throw IncorrectTokenType("Expected int, bool or void, got " + tokenTypeToString(currToken.type));
@@ -71,7 +74,9 @@ std::unique_ptr<Function> Parser::parseFunction() {
 
     std::unique_ptr<Block> block = parseBlock();
 
-    return std::make_unique<Function>(identifier,std::move(*block),params,varType);
+    size_t endLine = block->lines.second;
+
+    return std::make_unique<Function>(identifier,std::move(*block),params,varType, std::pair<size_t,size_t>(startLine,endLine));
 
 }
 
@@ -89,7 +94,7 @@ Param Parser::parseParam() {
 std::unique_ptr<Block> Parser::parseBlock() {
     //[{] [statements]* [}]
     std::vector<std::unique_ptr<Statement>> statements;
-    expect(tokenType::LBRACE);
+    size_t startLine = expect(tokenType::LBRACE).line;
     advance();
     while (!check(tokenType::RBRACE) && !check(tokenType::ENDOFFILE)) {
         token currToken = peek();
@@ -119,11 +124,11 @@ std::unique_ptr<Block> Parser::parseBlock() {
         }
 
     }
-    expect(tokenType::RBRACE);
+    size_t endLine = expect(tokenType::RBRACE).line;
     advance();
 
 
-    return std::make_unique<Block>(std::move(statements));
+    return std::make_unique<Block>(std::move(statements), std::pair<size_t,size_t>(startLine,endLine));
 }
 
 std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() {
@@ -131,6 +136,7 @@ std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() 
     VarType varType = tokenTypeToVarType(expect(std::vector<tokenType>({tokenType::INT, tokenType::BOOL})).type);
     advance();
     std::string identifier = expect(tokenType::IDENTIFIER).text;
+    size_t line = expect(tokenType::IDENTIFIER).line;
     advance();
     std::unique_ptr<Expression> expression = nullptr;
 
@@ -154,12 +160,12 @@ std::unique_ptr<VarDeclarationStatement> Parser::parseVarDeclarationStatement() 
     }
     */
 
-    return std::make_unique<VarDeclarationStatement>(varType, identifier, std::move(expression));
+    return std::make_unique<VarDeclarationStatement>(varType, identifier, std::move(expression), std::pair<size_t,size_t>(line,line));
 }
 
 std::unique_ptr<IfStatement> Parser::parseIfStatement() {
     //[if] [(] [expression] [)] [block] [OPTIONAL: [ELSE] [IF]]
-    expect(tokenType::IF);
+    size_t startLine = expect(tokenType::IF).line;
     advance();
     expect(tokenType::LPAREN);
     advance();
@@ -167,6 +173,8 @@ std::unique_ptr<IfStatement> Parser::parseIfStatement() {
     expect(tokenType::RPAREN);
     advance();
     std::unique_ptr<Block> ifBlock = std::move(parseBlock());
+
+    size_t endLine = ifBlock->lines.second;
 
     //optional ELSE, ELSE IF
     IfStatementType ifStatementType;
@@ -179,10 +187,12 @@ std::unique_ptr<IfStatement> Parser::parseIfStatement() {
             //IF ELSE IF
             ifStatement = std::move(parseIfStatement());
             ifStatementType = IfStatementType::IFELSEIF;
+            endLine = ifStatement->lines.second;
         } else {
             //IF ELSE
             elseBlock = std::move(parseBlock());
             ifStatementType = IfStatementType::IFELSE;
+            endLine = elseBlock->lines.second;
         }
     } else {
         // IF
@@ -190,12 +200,12 @@ std::unique_ptr<IfStatement> Parser::parseIfStatement() {
     }
 
 
-    return std::make_unique<IfStatement>(ifStatementType,std::move(ifCondition),std::move(ifBlock), std::move(elseBlock), std::move(ifStatement));
+    return std::make_unique<IfStatement>(ifStatementType,std::move(ifCondition),std::move(ifBlock), std::move(elseBlock), std::move(ifStatement), std::pair<size_t,size_t>(startLine,endLine));
 }
 
 std::unique_ptr<WhileStatement> Parser::parseWhileStatement() {
     //[while] [(] [expression] [)] [block]
-    expect(tokenType::WHILE);
+    size_t startLine = expect(tokenType::WHILE).line;
     advance();
     expect(tokenType::LPAREN);
     advance();
@@ -204,12 +214,14 @@ std::unique_ptr<WhileStatement> Parser::parseWhileStatement() {
     advance();
     std::unique_ptr<Block> whileBlock = std::move(parseBlock());
 
-    return std::make_unique<WhileStatement>(std::move(whileCondition),std::move(whileBlock));
+    size_t endLine = whileBlock->lines.second;
+
+    return std::make_unique<WhileStatement>(std::move(whileCondition),std::move(whileBlock), std::pair<size_t,size_t>(startLine,endLine));
 }
 
 std::unique_ptr<ForStatement> Parser::parseForStatement() {
     //[for] [(] [forinit] [;] [forCondition] [;] [forIncrement] [)] [block]
-    expect(tokenType::FOR);
+    size_t startLine = expect(tokenType::FOR).line;
     advance();
     expect(tokenType::LPAREN);
     advance();
@@ -222,14 +234,15 @@ std::unique_ptr<ForStatement> Parser::parseForStatement() {
     advance();
     std::unique_ptr<Block> forBlock = std::move(parseBlock()); //parse functions always advances to first unconsumed token
 
+    size_t endLine = forBlock->lines.second;
 
-    return std::make_unique<ForStatement>(std::move(forInit),std::move(forCondition),std::move(forIncrement), std::move(forBlock));
+    return std::make_unique<ForStatement>(std::move(forInit),std::move(forCondition),std::move(forIncrement), std::move(forBlock), std::pair<size_t,size_t>(startLine,endLine));
 }
 
 std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     //[return] [OPTIONAL: [expression]] [;]
     //void returns can do return;, int and bool needs the varType
-    expect(tokenType::RETURN);
+    size_t line = expect(tokenType::RETURN).line;
     advance();
 
     std::unique_ptr<Expression> returnValue = nullptr;
@@ -239,7 +252,7 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
     expect(tokenType::SEMICOLON);
     advance();
 
-    return std::make_unique<ReturnStatement>(std::move(returnValue));
+    return std::make_unique<ReturnStatement>(std::move(returnValue), std::pair<size_t,size_t>(line,line));
 }
 
 std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
@@ -247,7 +260,10 @@ std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
     expect(tokenType::SEMICOLON);
     advance();
 
-    return std::make_unique<ExpressStatement>(std::move(expression));
+    size_t line = expression->lines.first;
+
+
+    return std::make_unique<ExpressStatement>(std::move(expression), std::pair<size_t,size_t>(line,line));
 }
 
 
@@ -259,7 +275,7 @@ std::unique_ptr<ExpressStatement> Parser::parseExpressStatement() {
 
 
 
-
+//TODO: make line detection be able to detect multi-line expressions
 std::unique_ptr<Expression> Parser::parseExpression() {
     std::unique_ptr<Expression> left = std::move(parseLgOR());
 
@@ -271,7 +287,8 @@ std::unique_ptr<Expression> Parser::parseExpression() {
         }
         advance();
         std::unique_ptr<Expression> value = std::move(parseExpression()); //advances
-        return std::make_unique<AssignExpression>(target->varName, std::move(value));
+        size_t line = value->lines.first; //NOTE: the grammar allows for multilined expressions, this current line detection assumes expressions are made in one line
+        return std::make_unique<AssignExpression>(target->varName, std::move(value), std::pair<size_t,size_t>(line,line));
     }
     return left;
 }
@@ -283,7 +300,8 @@ std::unique_ptr<Expression> Parser::parseLgOR() {
     while (check(tokenType::LG_OR)) {
         advance();
         std::unique_ptr<Expression> right = std::move(parseLgAND());
-        left = std::make_unique<BinaryExpression>(BinaryOperator::OR, std::move(left), std::move(right));
+        size_t line = right->lines.first;
+        left = std::make_unique<BinaryExpression>(BinaryOperator::OR, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
     }
 
     return left;
@@ -296,7 +314,8 @@ std::unique_ptr<Expression> Parser::parseLgAND() {
     while (check(tokenType::LG_AND)) {
         advance();
         std::unique_ptr<Expression> right = std::move(parseLgEquality());
-        left = std::make_unique<BinaryExpression>(BinaryOperator::AND, std::move(left), std::move(right));
+        size_t line = right->lines.first;
+        left = std::make_unique<BinaryExpression>(BinaryOperator::AND, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
     }
     return left;
 }
@@ -309,11 +328,12 @@ std::unique_ptr<Expression> Parser::parseLgEquality() {
         token curr = peek();
         advance();
         std::unique_ptr<Expression> right = std::move(parseLgComparator()); //advances
+        size_t line = right->lines.first;
 
         if (curr.type == tokenType::LG_EQUAL) {
-            left = std::make_unique<BinaryExpression>(BinaryOperator::EQUAL, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::EQUAL, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         } else {
-            left = std::make_unique<BinaryExpression>(BinaryOperator::NOTEQUAL, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::NOTEQUAL, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         }
 
     }
@@ -328,19 +348,20 @@ std::unique_ptr<Expression> Parser::parseLgComparator() {
         token curr = peek();
         advance();
         std::unique_ptr<Expression> right = std::move(parsePlusMinus()); //advances
+        size_t line = right->lines.first;
 
         switch (curr.type) {
             case tokenType::LG_GREATER:
-                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHAN, std::move(left), std::move(right));
+                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHAN, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
                 break;
             case tokenType::LG_GREATER_EQUAL:
-                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHANOREQUAL, std::move(left), std::move(right));
+                left = std::make_unique<BinaryExpression>(BinaryOperator::MORETHANOREQUAL, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
                 break;
             case tokenType::LG_LESS:
-                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHAN, std::move(left), std::move(right));
+                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHAN, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
                 break;
             case tokenType::LG_LESS_EQUAL:
-                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHANOREQUAL, std::move(left), std::move(right));
+                left = std::make_unique<BinaryExpression>(BinaryOperator::LESSTHANOREQUAL, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
                 break;
             default:
                 //throw error, though this is not possible to reach
@@ -352,6 +373,7 @@ std::unique_ptr<Expression> Parser::parseLgComparator() {
 
 std::unique_ptr<Expression> Parser::parsePlusMinus() {
     std::unique_ptr<Expression> left = std::move(parseMultiplication());
+    size_t line = left->lines.first;
 
     //solves sequential plus and minus
     while (check(std::vector<tokenType>({tokenType::PLUS, tokenType::MINUS}))) {
@@ -360,10 +382,10 @@ std::unique_ptr<Expression> Parser::parsePlusMinus() {
         std::unique_ptr<Expression> right = std::move(parseMultiplication()); //advances
 
         if (curr.type == tokenType::PLUS) {
-            left = std::make_unique<BinaryExpression>(BinaryOperator::PLUS, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::PLUS, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         } else {
             //minus
-            left = std::make_unique<BinaryExpression>(BinaryOperator::MINUS, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::MINUS, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         }
     }
 
@@ -372,6 +394,7 @@ std::unique_ptr<Expression> Parser::parsePlusMinus() {
 
 std::unique_ptr<Expression> Parser::parseMultiplication() {
     std::unique_ptr<Expression> left = std::move(parseUnary());
+    size_t line = left->lines.first;
 
     //solves sequential multiplications
     while (check(std::vector<tokenType>({tokenType::MULTIPLY, tokenType::DIVIDE}))) {
@@ -380,9 +403,9 @@ std::unique_ptr<Expression> Parser::parseMultiplication() {
         std::unique_ptr<Expression> right = std::move(parseUnary()); //advances
 
         if (curr.type == tokenType::MULTIPLY) {
-            left = std::make_unique<BinaryExpression>(BinaryOperator::MULTIPLY, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::MULTIPLY, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         } else {
-            left = std::make_unique<BinaryExpression>(BinaryOperator::DIVIDE, std::move(left), std::move(right));
+            left = std::make_unique<BinaryExpression>(BinaryOperator::DIVIDE, std::move(left), std::move(right), std::pair<size_t,size_t>(line,line));
         }
     }
     return left;
@@ -397,10 +420,10 @@ std::unique_ptr<Expression> Parser::parseUnary() {
 
         if (curr.type == tokenType::MINUS) {
             //MINUS
-            operand = std::make_unique<UnaryExpression>(UnaryOperator::NEGATIVE, std::move(parseUnary()));
+            operand = std::make_unique<UnaryExpression>(UnaryOperator::NEGATIVE, std::move(parseUnary()), std::pair<size_t,size_t>({curr.line,curr.line}));
         } else {
             //NOT
-            operand = std::make_unique<UnaryExpression>(UnaryOperator::NOT, std::move(parseUnary()));
+            operand = std::make_unique<UnaryExpression>(UnaryOperator::NOT, std::move(parseUnary()), std::pair<size_t,size_t>({curr.line,curr.line}));
         }
 
 
@@ -423,15 +446,15 @@ std::unique_ptr<Expression> Parser::parseBase() {
             } catch (const std::out_of_range& e) {
                 throw genericIssue("Int literal exceeds 32bit signed size limit");
             }
-            base = std::make_unique<Literal_INT>(std::stoi(curr.text));
+            base = std::make_unique<Literal_INT>(std::stoi(curr.text), std::pair<size_t,size_t>({curr.line,curr.line}));
             advance();
             break;
         case tokenType::BOOL_FALSE:
-            base = std::make_unique<Literal_BOOL>(false);
+            base = std::make_unique<Literal_BOOL>(false, std::pair<size_t,size_t>({curr.line,curr.line}));
             advance();
             break;
         case tokenType::BOOL_TRUE:
-            base = std::make_unique<Literal_BOOL>(true);
+            base = std::make_unique<Literal_BOOL>(true, std::pair<size_t,size_t>({curr.line,curr.line}));
             advance();
             break;
         case tokenType::IDENTIFIER:
@@ -442,7 +465,7 @@ std::unique_ptr<Expression> Parser::parseBase() {
                 if (check(tokenType::RPAREN)) {
                     //no args
                     advance();
-                    base = std::make_unique<Call>(curr.text, std::move(args));
+                    base = std::make_unique<Call>(curr.text, std::move(args), std::pair<size_t,size_t>({curr.line,curr.line}));
                 } else {
                     //args
                     args.push_back(std::move(parseExpression()));
@@ -452,12 +475,12 @@ std::unique_ptr<Expression> Parser::parseBase() {
                     }
                     expect(tokenType::RPAREN);
                     advance();
-                    base = std::make_unique<Call>(curr.text, std::move(args));
+                    base = std::make_unique<Call>(curr.text, std::move(args), std::pair<size_t,size_t>({curr.line,curr.line}));
                 }
 
             } else{
                 //var reference
-                base = std::make_unique<VariableReference>(curr.text);
+                base = std::make_unique<VariableReference>(curr.text, std::pair<size_t,size_t>({curr.line,curr.line}));
             }
             break;
 

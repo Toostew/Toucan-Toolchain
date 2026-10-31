@@ -67,6 +67,9 @@ typedef struct {
 
 class Node {
 public:
+    std::pair<size_t, size_t> lines;
+    Node(std::pair<size_t, size_t> line)
+        : lines(line){};
     virtual ~Node() {};
     virtual void accept(Visitor& visitor) = 0; //pure virtual
 
@@ -78,6 +81,9 @@ public:
 class Expression : public Node {
 public:
     VarType varType = VarType::UNKNOWN; //init default to unknown
+
+    Expression(std::pair<size_t, size_t>  line)
+        : Node(line){};
 };
 class UnaryExpression : public Expression{
 public:
@@ -85,8 +91,8 @@ public:
     std::unique_ptr<Expression> operand;
 
     void accept(Visitor& visitor) override;
-    UnaryExpression(UnaryOperator op, std::unique_ptr<Expression> operand)
-        :op(op), operand(std::move(operand)){};
+    UnaryExpression(UnaryOperator op, std::unique_ptr<Expression> operand, std::pair<size_t, size_t>  line)
+        :op(op), operand(std::move(operand)), Expression(line){};
 };
 class BinaryExpression : public Expression {
 public:
@@ -95,8 +101,8 @@ public:
     std::unique_ptr<Expression> rightOperand;
 
     void accept(Visitor& visitor) override;
-    BinaryExpression(BinaryOperator op, std::unique_ptr<Expression> leftOperand, std::unique_ptr<Expression> rightOperand)
-        :op(op), leftOperand(std::move(leftOperand)), rightOperand(std::move(rightOperand)){};
+    BinaryExpression(BinaryOperator op, std::unique_ptr<Expression> leftOperand, std::unique_ptr<Expression> rightOperand, std::pair<size_t, size_t>  line)
+        :op(op), leftOperand(std::move(leftOperand)), rightOperand(std::move(rightOperand)), Expression(line){};
 };
 class AssignExpression : public Expression {
 public:
@@ -104,32 +110,32 @@ public:
     std::unique_ptr<Expression> expression;
 
     void accept(Visitor& visitor) override;
-    AssignExpression(std::string target, std::unique_ptr<Expression> expression)
-        :target(std::move(target)), expression(std::move(expression)){};
+    AssignExpression(std::string target, std::unique_ptr<Expression> expression, std::pair<size_t, size_t>  line)
+        :target(std::move(target)), expression(std::move(expression)), Expression(line){};
 };
 class Literal_BOOL : public Expression {
 public:
     bool value;
 
     void accept(Visitor& visitor) override;
-    explicit Literal_BOOL(bool value) //explicit is used to prevent implicit constructor calls
-        :value(value){};
+    explicit Literal_BOOL(bool value, std::pair<size_t, size_t>  line) //explicit is used to prevent implicit constructor calls
+        :value(value), Expression(line){};
 };
 class Literal_INT : public Expression {
 public:
     int32_t value;
 
     void accept(Visitor& visitor) override;
-    explicit Literal_INT(int32_t value)
-        :value(value){};
+    explicit Literal_INT(int32_t value, std::pair<size_t, size_t>  line)
+        :value(value), Expression(line){};
 };
 class VariableReference : public Expression {
 public:
     std::string varName;
 
     void accept(Visitor& visitor) override;
-    explicit VariableReference(std::string varName)
-        :varName(std::move(varName)){};
+    explicit VariableReference(std::string varName, std::pair<size_t, size_t>  line)
+        :varName(std::move(varName)), Expression(line){};
 };
 class Call : public Expression {
 public:
@@ -137,8 +143,8 @@ public:
     std::vector<std::unique_ptr<Expression>> arguments;
 
     void accept(Visitor& visitor) override;
-    Call(std::string name, std::vector<std::unique_ptr<Expression>> arguments)
-        :functionName(std::move(name)), arguments(std::move(arguments)){};
+    Call(std::string name, std::vector<std::unique_ptr<Expression>> arguments, std::pair<size_t, size_t>  line)
+        :functionName(std::move(name)), arguments(std::move(arguments)), Expression(line){};
 };
 
 
@@ -167,6 +173,9 @@ public:
 
 //common type
 class Statement : public Node {
+public:
+    Statement(std::pair<size_t, size_t>  line)
+        :Node(line){};
 };
 
 class Block : public Node {
@@ -175,8 +184,8 @@ public:
 
     void accept(Visitor& visitor) override;
     Block() = default;
-    explicit Block(std::vector<std::unique_ptr<Statement>> statements)
-        :statements(std::move(statements)){};
+    explicit Block(std::vector<std::unique_ptr<Statement>> statements, std::pair<size_t, size_t>  line)
+        :statements(std::move(statements)), Node(line){};
 };
 
 class VarDeclarationStatement : public Statement {
@@ -186,8 +195,8 @@ public:
     std::unique_ptr<Expression> expression;
 
     void accept(Visitor& visitor) override;
-    VarDeclarationStatement(VarType varType, std::string varName, std::unique_ptr<Expression> expression)
-        :varType(varType), varName(std::move(varName)), expression(std::move(expression)){};
+    VarDeclarationStatement(VarType varType, std::string varName, std::unique_ptr<Expression> expression, std::pair<size_t, size_t>  line)
+        :varType(varType), varName(std::move(varName)), expression(std::move(expression)), Statement(line){};
 };
 
 class IfStatement : public Statement {
@@ -199,8 +208,8 @@ public:
     std::unique_ptr<IfStatement> elseIf = nullptr;
 
     void accept(Visitor& visitor) override;
-    IfStatement(IfStatementType ifStatementType, std::unique_ptr<Expression> ifCondition, std::unique_ptr<Block> ifBlock, std::unique_ptr<Block> elseBlock, std::unique_ptr<IfStatement> elseIf)
-        :ifStatementType(ifStatementType), ifCondition(std::move(ifCondition)), ifBlock(std::move(ifBlock)), elseBlock(std::move(elseBlock)), elseIf(std::move(elseIf)){};
+    IfStatement(IfStatementType ifStatementType, std::unique_ptr<Expression> ifCondition, std::unique_ptr<Block> ifBlock, std::unique_ptr<Block> elseBlock, std::unique_ptr<IfStatement> elseIf, std::pair<size_t, size_t>  line)
+        :ifStatementType(ifStatementType), ifCondition(std::move(ifCondition)), ifBlock(std::move(ifBlock)), elseBlock(std::move(elseBlock)), elseIf(std::move(elseIf)), Statement(line){};
 };
 class WhileStatement : public Statement {
 public:
@@ -208,8 +217,8 @@ public:
     std::unique_ptr<Block> block;
 
     void accept(Visitor &visitor) override;
-    WhileStatement(std::unique_ptr<Expression> condition, std::unique_ptr<Block> block)
-        :condition(std::move(condition)), block(std::move(block)){};
+    WhileStatement(std::unique_ptr<Expression> condition, std::unique_ptr<Block> block, std::pair<size_t, size_t>  line)
+        :condition(std::move(condition)), block(std::move(block)), Statement(line){};
 
 };
 class ForStatement : public Statement {
@@ -220,24 +229,24 @@ public:
     std::unique_ptr<Block> block;
 
     void accept(Visitor &visitor) override;
-    ForStatement(std::unique_ptr<VarDeclarationStatement> forInit, std::unique_ptr<Expression> forCondition,std::unique_ptr<Expression> forIncrement, std::unique_ptr<Block> block)
-        :forInit(std::move(forInit)), forCondition(std::move(forCondition)), forIncrement(std::move(forIncrement)), block(std::move(block)){};
+    ForStatement(std::unique_ptr<VarDeclarationStatement> forInit, std::unique_ptr<Expression> forCondition,std::unique_ptr<Expression> forIncrement, std::unique_ptr<Block> block, std::pair<size_t, size_t>  line)
+        :forInit(std::move(forInit)), forCondition(std::move(forCondition)), forIncrement(std::move(forIncrement)), block(std::move(block)), Statement(line){};
 };
 class ReturnStatement : public Statement {
 public:
     std::unique_ptr<Expression> returnExpression;
 
     void accept(Visitor& visitor) override;
-    explicit ReturnStatement(std::unique_ptr<Expression> returnExpression)
-        :returnExpression(std::move(returnExpression)){};
+    explicit ReturnStatement(std::unique_ptr<Expression> returnExpression, std::pair<size_t, size_t>  line)
+        :returnExpression(std::move(returnExpression)), Statement(line){};
 };
 class ExpressStatement : public Statement {
 public:
     std::unique_ptr<Expression> expression;
 
     void accept(Visitor& visitor) override;
-    explicit ExpressStatement(std::unique_ptr<Expression> expression)
-        :expression(std::move(expression)){};
+    explicit ExpressStatement(std::unique_ptr<Expression> expression, std::pair<size_t, size_t>  line)
+        :expression(std::move(expression)), Statement(line){};
 };
 
 
@@ -251,8 +260,8 @@ public:
     std::vector<Param> parameters;
 
     void accept(Visitor& visitor) override;
-    Function(std::string functionName, Block functionBlock, std::vector<Param> parameters, VarType returnType)
-        :functionName(std::move(functionName)), functionBlock(std::move(functionBlock)), parameters(std::move(parameters)), returnType(returnType){};
+    Function(std::string functionName, Block functionBlock, std::vector<Param> parameters, VarType returnType, std::pair<size_t, size_t>  line)
+        :functionName(std::move(functionName)), functionBlock(std::move(functionBlock)), parameters(std::move(parameters)), returnType(returnType), Node(line){};
 };
 
 class Program : public Node {
@@ -261,8 +270,8 @@ public:
 
 
     void accept(Visitor& visitor) override;
-    explicit Program(std::vector<std::unique_ptr<Function>> functions)
-        :functions(std::move(functions)){};
+    explicit Program(std::vector<std::unique_ptr<Function>> functions, std::pair<size_t, size_t>  line)
+        :functions(std::move(functions)), Node(line){};
 };
 
 

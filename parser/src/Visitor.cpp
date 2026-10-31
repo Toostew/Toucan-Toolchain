@@ -7,6 +7,8 @@
 #include "Visitor.h"
 
 
+//DumpVisitor
+
 void DumpVisitor::visit(Literal_BOOL& literal_bool) {
     printIndent();
     std::cout << "BOOL " <<(literal_bool.value ? "TRUE" : "FALSE") << "\n";
@@ -251,3 +253,33 @@ std::string DumpVisitor::getBinaryOperator(const BinaryOperator binaryOp) {
             return "UNKNOWN";
     }
 }
+
+
+
+
+//SemanticVisitor
+
+
+//check Program has atleast one function called main with no params, get all functions into a central table
+void SemanticVisitor::functionSignatureCheck(Program& program) {
+
+    //populate list
+    for (const auto& function : program.functions) {
+        functionMD tempMD = {function->parameters, function->returnType};
+        if (functionTable.find(function->functionName) != functionTable.end()) {
+
+        }
+        functionTable[function->functionName] = tempMD;
+    }
+
+    //check list
+    int mainCount = 0;
+    for (const auto& function : functionTable) {
+        if (function.first == "main") {
+
+        }
+    }
+
+
+}
+

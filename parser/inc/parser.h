@@ -15,6 +15,7 @@
 
 class Parser {
 public:
+
     std::vector<token> tokens;
     size_t pos = 0;
 
