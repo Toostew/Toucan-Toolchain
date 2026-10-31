@@ -4,10 +4,7 @@
 
 
 #include "parser.h"
-
 #include <algorithm>
-#include <cmath>
-
 #include "exceptions.h"
 
 std::unique_ptr<Program> Parser::parseProgram() {

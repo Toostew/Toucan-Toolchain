@@ -9,6 +9,8 @@ add_executable(parser src/main.cpp
         src/TokenTable.cpp
         src/Node.cpp
         inc/exceptions.h
-        src/exceptions.cpp)
+        src/exceptions.cpp
+        inc/Visitor.h
+        src/Visitor.cpp)
 
 target_include_directories(parser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
