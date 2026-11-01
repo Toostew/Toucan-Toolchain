@@ -293,20 +293,40 @@ void SemanticVisitor::functionSignatureCheck(Program& program) {
     //populate list
     for (const auto& function : program.functions) {
         functionMD tempMD = {function->parameters, function->returnType};
-        if (functionTable.find(function->functionName) != functionTable.end()) {
-
+        if (functionTable.find(function->functionName) == functionTable.end()) {
+            //functionTable doesn't have this entry
+            functionTable[function->functionName] = tempMD;
+        } else {
+            //duplicate function names
+            std::string message = "Multiple functions with the same name " + function->functionName + " not allowed";
+            errors.push_back(message);
         }
-        functionTable[function->functionName] = tempMD;
+
     }
 
-    //check list
+    //check list for main with no params
     int mainCount = 0;
+    VarType returnType = VarType::UNKNOWN;
     for (const auto& function : functionTable) {
         if (function.first == "main") {
-
+            if (function.second.parameters.empty()) {
+                //no params no problem
+                mainCount++;
+                returnType = function.second.returnType;
+            } else {
+                std::string message = "main function must be parameterless";
+                errors.push_back(message);
+            }
         }
     }
+    if (mainCount == 0) {
+        errors.push_back("no parameterless main function");
+    }
 
+    //check returnType
+    if (returnType != VarType::INT && mainCount == 1) {
+        errors.push_back("return type of main function must be int");
+    }
 
 }
 
