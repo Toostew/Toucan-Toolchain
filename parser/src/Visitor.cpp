@@ -350,17 +350,18 @@ void SemanticVisitor::visit(Function &function) {
     //return type must match!
 
 
-    std::unordered_map<std::string, VarType> variableTable;
+    std::unordered_map<std::string, variableMD> variableTable;
     for (const auto& param : function.parameters) {
         auto var = variableTable.find(param.name);
         if (var != variableTable.end()) {
             //match, shouldnt
             std::string message = "parameter " + param.name + " in " + function.functionName + " is already defined";
-            errors.push_back(error{message,std::pair<size_t,size_t>{0,0}});
+            errors.push_back(error{message,std::pair<size_t,size_t>{function.lines.first,function.lines.first}});
         }
-        variableTable[param.name] = param.varType; //duplicate params overwrite, doesnt matter
+        variableTable[param.name] = variableMD{param.varType,std::pair<size_t,size_t>{function.lines.first,function.lines.first}}; //duplicate params overwrite, doesnt matter
     }
     variableTableStack.push_back(variableTable);
+    currFunctionReturnType = function.returnType;
 
     function.functionBlock.accept(*this);
     if (function.returnType != VarType::VOID && !hasReturn) {
@@ -369,10 +370,11 @@ void SemanticVisitor::visit(Function &function) {
     }
 
     variableTableStack.pop_back();
+    currFunctionReturnType = VarType::UNKNOWN;
 }
 
 void SemanticVisitor::visit(Block& block) {
-    std::unordered_map<std::string, VarType> variableTable;
+    std::unordered_map<std::string, variableMD> variableTable;
     variableTableStack.push_back(variableTable);
 
     //detect the first occurrence of a return statement
@@ -425,19 +427,87 @@ void SemanticVisitor::visit(IfStatement &ifStatement) {
     hasReturn = localIfHasReturn;
 }
 
+void SemanticVisitor::visit(WhileStatement &whileStatement) {
+    whileStatement.condition->accept(*this);
+
+    if (whileStatement.condition->varType != VarType::BOOL && whileStatement.condition->varType != VarType::UNKNOWN) {
+        errors.push_back(error{"while condition requires boolean expression",whileStatement.lines});
+    }
+
+    whileStatement.block->accept(*this);
+    hasReturn = false;
+}
+
+void SemanticVisitor::visit(ForStatement &forStatement) {
+    std::unordered_map<std::string, variableMD> variableTable;
+    variableTableStack.push_back(variableTable);
+    forStatement.forInit->accept(*this);
+    forStatement.forCondition->accept(*this);
+    if (forStatement.forCondition->varType != VarType::BOOL && forStatement.forCondition->varType != VarType::UNKNOWN) {
+        errors.push_back(error{"For condition requires boolean expression",forStatement.lines});
+    }
+    forStatement.forIncrement->accept(*this);
+    forStatement.block->accept(*this);
+    variableTableStack.pop_back();
+    hasReturn = false;
+}
+
+void SemanticVisitor::visit(ReturnStatement &returnStatement) {
+    if (returnStatement.returnExpression != nullptr) {
+        returnStatement.returnExpression->accept(*this);
+        if (returnStatement.returnExpression->varType != currFunctionReturnType && returnStatement.returnExpression->varType != VarType::UNKNOWN) {
+            errors.push_back(error{"Invalid return type, expected " + getVarType(currFunctionReturnType) + ", got " + getVarType(returnStatement.returnExpression->varType),returnStatement.lines});
+
+        }
+    } else {
+        //no returnExpression, it is void return, anything that isnt void and isnt unknown
+        if (currFunctionReturnType != VarType::VOID && currFunctionReturnType != VarType::UNKNOWN) {
+            errors.push_back(error{"Invalid return type, expected " + getVarType(currFunctionReturnType) + ", got void",returnStatement.lines});
+        }
+    }
+    hasReturn = true;
+}
+
+void SemanticVisitor::visit(ExpressStatement &expressStatement) {
+    expressStatement.expression->accept(*this);
+    hasReturn = false;
+}
+
+void SemanticVisitor::visit(VarDeclarationStatement &varDeclarationStatement) {
+    varDeclarationStatement.expression->accept(*this);
+    if (varDeclarationStatement.varType != varDeclarationStatement.expression->varType && varDeclarationStatement.expression->varType != VarType::UNKNOWN) {
+        //var declaration does not match the type produced by the expression
+        std::string message = "var " + varDeclarationStatement.varName + " expected an expression of type " + getVarType(varDeclarationStatement.varType) + ", got " + getVarType(varDeclarationStatement.expression->varType);
+        errors.push_back(error{message,varDeclarationStatement.lines});
+    }
+    std::pair<std::string, variableMD> var = findVariable(varDeclarationStatement.varName);
+    if (var.first != "" && var.second.varType != VarType::UNKNOWN) {
+        errors.push_back(error{"var " + var.first + " already defined",var.second.lines});
+    } else {
+        //no duplicates
+        variableTableStack.back()[varDeclarationStatement.varName] = variableMD{varDeclarationStatement.varType,varDeclarationStatement.lines};
+    }
+    hasReturn = false;
+}
+
+void SemanticVisitor::visit(AssignExpression &assignExpression) {
+
+}
 
 
 
 
-std::pair<std::string, VarType> SemanticVisitor::findVariable(const std::string& varName) {
+
+std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::string& varName) {
 
     for (const auto& variableTable : variableTableStack) {
         auto var = variableTable.find(varName);
         if (var != variableTable.end()) {
-            return std::pair<std::string, VarType>({var->first,var->second});
+            return std::pair<std::string, variableMD>({var->first,var->second});
         }
     }
-    return std::pair<std::string, VarType>({"",VarType::UNKNOWN});
+    //could not find a copy
+    return std::pair<std::string, variableMD>({"",variableMD{VarType::UNKNOWN, std::pair<size_t,size_t>(0,0)}});
 }
 
 

@@ -15,6 +15,11 @@ typedef struct {
 }  functionMD; //functionMetaData
 
 typedef struct {
+    VarType varType;
+    std::pair<size_t,size_t> lines;
+} variableMD;
+
+typedef struct {
     std::string message;
     std::pair<size_t, size_t> lines;
 
@@ -88,11 +93,12 @@ public:
     std::unordered_map<std::string, functionMD> functionTable;
     std::vector<error> errors;
     std::vector<error> warnings;
-    std::vector<std::unordered_map<std::string, VarType>> variableTableStack;
+    std::vector<std::unordered_map<std::string, variableMD>> variableTableStack;
+    VarType currFunctionReturnType = VarType::UNKNOWN;
     bool hasReturn = false;
 
 
-    std::pair<std::string,VarType> findVariable(const std::string& varName);
+    std::pair<std::string, variableMD> findVariable(const std::string& varName);
 
     void functionSignatureCheck(const Program& program);
     void functionBodyCheck(const Program& program);
