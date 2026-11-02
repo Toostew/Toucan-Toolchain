@@ -16,9 +16,14 @@ typedef struct {
 
 typedef struct {
     std::string message;
-    size_t line;
+    std::pair<size_t, size_t> lines;
 
 } error;
+
+std::string getVarType(const VarType varType);
+std::string getUnaryOperator(const UnaryOperator unaryOp);
+std::string getBinaryOperator(const BinaryOperator binaryOp);
+
 
 class Visitor {
 public:
@@ -51,9 +56,7 @@ public:
     uint32_t depth = 0;
     void printIndent();
     void printLines(std::pair<size_t,size_t> lines);
-    std::string getVarType(const VarType varType);
-    std::string getUnaryOperator(const UnaryOperator unaryOp);
-    std::string getBinaryOperator(const BinaryOperator binaryOp);
+
 
 
     void visit(Block& block) override;
@@ -83,7 +86,7 @@ public:
 class SemanticVisitor : public Visitor {
 public:
     std::unordered_map<std::string, functionMD> functionTable;
-    std::vector<std::string> errors;
+    std::vector<error> errors;
     std::vector<std::string> warnings;
     std::vector<std::unordered_map<std::string, VarType>> variableTableStack;
     bool hasReturn = false;

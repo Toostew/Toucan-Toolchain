@@ -226,7 +226,7 @@ void DumpVisitor::printLines(std::pair<size_t,size_t> lines) {
 
 
 
-std::string DumpVisitor::getVarType(const VarType varType) {
+std::string getVarType(const VarType varType) {
     switch (varType) {
         case VarType::BOOL:
             return "BOOL";
@@ -239,7 +239,7 @@ std::string DumpVisitor::getVarType(const VarType varType) {
     }
 }
 
-std::string DumpVisitor::getUnaryOperator(const UnaryOperator unaryOp) {
+std::string getUnaryOperator(const UnaryOperator unaryOp) {
     switch (unaryOp) {
         case UnaryOperator::NEGATIVE:
             return "NEGATIVE";
@@ -250,7 +250,7 @@ std::string DumpVisitor::getUnaryOperator(const UnaryOperator unaryOp) {
     }
 }
 
-std::string DumpVisitor::getBinaryOperator(const BinaryOperator binaryOp) {
+std::string getBinaryOperator(const BinaryOperator binaryOp) {
     switch (binaryOp) {
         case BinaryOperator::PLUS:
             return "PLUS";
@@ -299,7 +299,7 @@ void SemanticVisitor::functionSignatureCheck(const Program& program) {
         } else {
             //duplicate function names
             std::string message = "Multiple functions with the same name " + function->functionName + " not allowed";
-            errors.push_back(message);
+            errors.push_back(error{message,function->lines});
         }
 
     }
@@ -315,17 +315,17 @@ void SemanticVisitor::functionSignatureCheck(const Program& program) {
                 returnType = function.second.returnType;
             } else {
                 std::string message = "main function must be parameterless";
-                errors.push_back(message);
+                errors.push_back(error{message,std::pair<size_t,size_t>{0,0}});
             }
         }
     }
     if (mainCount == 0) {
-        errors.push_back("no parameterless main function");
+        errors.push_back(error{"no parameterless main function", std::pair<size_t,size_t>{0,0}});
     }
 
     //check returnType
     if (returnType != VarType::INT && mainCount == 1) {
-        errors.push_back("return type of main function must be int");
+        errors.push_back(error{"returnType of main function must be int", std::pair<size_t,size_t>{0,0}});
     }
 
 }
@@ -352,15 +352,29 @@ void SemanticVisitor::visit(Function &function) {
 
     std::unordered_map<std::string, VarType> variableTable;
     for (const auto& param : function.parameters) {
-        if (variable) {
-
+        auto var = variableTable.find(param.name);
+        if (var != variableTable.end()) {
+            //match, shouldnt
+            std::string message = "parameter " + param.name + " in " + function.functionName + " is already defined";
+            errors.push_back(error{message,std::pair<size_t,size_t>{0,0}});
         }
-        variableTable[param.name] = param.varType;
+        variableTable[param.name] = param.varType; //duplicate params overwrite, doesnt matter
     }
-
     variableTableStack.push_back(variableTable);
 
+    function.functionBlock.accept(*this);
+    if (function.returnType != VarType::VOID && !hasReturn) {
+        std::string message = "function " + function.functionName + " does not have sufficient returns of type " + getVarType(function.returnType);
+        errors.push_back(error{message,function.lines});
+    }
+
+    variableTableStack.pop_back();
 }
+
+
+
+
+
 
 std::pair<std::string, VarType> SemanticVisitor::findVariable(const std::string& varName) {
 
