@@ -81,12 +81,18 @@ public:
 
 //check if the AST follows rules
 class SemanticVisitor : public Visitor {
+public:
     std::unordered_map<std::string, functionMD> functionTable;
     std::vector<std::string> errors;
+    std::vector<std::string> warnings;
+    std::vector<std::unordered_map<std::string, VarType>> variableTableStack;
+    bool hasReturn = false;
 
 
-    void functionSignatureCheck(Program& program);
+    std::pair<std::string,VarType> findVariable(const std::string& varName);
 
+    void functionSignatureCheck(const Program& program);
+    void functionBodyCheck(const Program& program);
 
     void visit(Block& block) override;
     void visit(Function& function) override;

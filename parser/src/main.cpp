@@ -108,6 +108,9 @@ int main(int argc, char* argv[]) {
         Parser parser = Parser(tokens);
         std::unique_ptr<Program> program = parser.parseProgram();
 
+        SemanticVisitor semantic = SemanticVisitor();
+        semantic.functionSignatureCheck(*program);
+
         DumpVisitor dumpVisitor = DumpVisitor();
         dumpVisitor.visit(*program);
 

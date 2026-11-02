@@ -119,7 +119,9 @@ public:
 
     void accept(Visitor& visitor) override;
     explicit Literal_BOOL(bool value, std::pair<size_t, size_t>  line) //explicit is used to prevent implicit constructor calls
-        :value(value), Expression(line){};
+        :Expression(line), value(value) {
+        this->varType = VarType::BOOL; //bools vartypes are absolute
+    };
 };
 class Literal_INT : public Expression {
 public:
@@ -127,7 +129,9 @@ public:
 
     void accept(Visitor& visitor) override;
     explicit Literal_INT(int32_t value, std::pair<size_t, size_t>  line)
-        :value(value), Expression(line){};
+        :value(value), Expression(line) {
+        this->varType = VarType::INT; //int vartype is absolute
+    };
 };
 class VariableReference : public Expression {
 public:

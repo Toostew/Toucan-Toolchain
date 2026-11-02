@@ -288,7 +288,7 @@ std::string DumpVisitor::getBinaryOperator(const BinaryOperator binaryOp) {
 
 
 //check Program has atleast one function called main with no params, get all functions into a central table
-void SemanticVisitor::functionSignatureCheck(Program& program) {
+void SemanticVisitor::functionSignatureCheck(const Program& program) {
 
     //populate list
     for (const auto& function : program.functions) {
@@ -329,4 +329,51 @@ void SemanticVisitor::functionSignatureCheck(Program& program) {
     }
 
 }
+
+
+
+void SemanticVisitor::functionBodyCheck(const Program &program) {
+
+}
+
+
+void SemanticVisitor::visit(Program &program) {
+
+    for (const auto& function : program.functions) {
+        function->accept(*this);
+    }
+
+}
+
+
+void SemanticVisitor::visit(Function &function) {
+    //return type must match!
+
+
+    std::unordered_map<std::string, VarType> variableTable;
+    for (const auto& param : function.parameters) {
+        if (variable) {
+
+        }
+        variableTable[param.name] = param.varType;
+    }
+
+    variableTableStack.push_back(variableTable);
+
+}
+
+std::pair<std::string, VarType> SemanticVisitor::findVariable(const std::string& varName) {
+
+    for (const auto& variableTable : variableTableStack) {
+        auto var = variableTable.find(varName);
+        if (var != variableTable.end()) {
+            return std::pair<std::string, VarType>({var->first,var->second});
+        }
+    }
+    return std::pair<std::string, VarType>({"",VarType::UNKNOWN});
+}
+
+
+
+
 
