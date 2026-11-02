@@ -490,7 +490,86 @@ void SemanticVisitor::visit(VarDeclarationStatement &varDeclarationStatement) {
     hasReturn = false;
 }
 
+void SemanticVisitor::visit(UnaryExpression &unaryExpression) {
+    unaryExpression.operand->accept(*this);
+    if (((unaryExpression.operand->varType == VarType::BOOL && unaryExpression.op == UnaryOperator::NOT))) {
+        //BOOL and NOT
+        unaryExpression.varType = VarType::BOOL;
+    }
+    else if ((unaryExpression.operand->varType == VarType::INT && unaryExpression.op == UnaryOperator::NEGATIVE)) {
+        //INT and NEG
+        unaryExpression.varType = VarType::INT;
+    } else {
+        //Illegal combination
+        //secondary check for UNKNOWN because fuck me I am not writing the stupid fucking long ass expression in one stupid fucking line
+        if (unaryExpression.operand->varType != VarType::UNKNOWN) {
+            errors.push_back(error{"unary expression type mismatch",unaryExpression.lines});
+        }
+
+    }
+}
+
+void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
+    binaryExpression.leftOperand->accept(*this);
+    binaryExpression.rightOperand->accept(*this);
+    if (binaryExpression.op == BinaryOperator::AND || binaryExpression.op == BinaryOperator::OR) {
+        //logicals, operands must be bools
+        if ((binaryExpression.leftOperand->varType == VarType::BOOL && binaryExpression.rightOperand->varType == VarType::BOOL)) {
+            binaryExpression.varType = VarType::BOOL;
+        } else {
+            if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
+                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+            }
+
+        }
+    }
+    else if (binaryExpression.op == BinaryOperator::PLUS || binaryExpression.op == BinaryOperator::MINUS || binaryExpression.op == BinaryOperator::MULTIPLY || binaryExpression.op == BinaryOperator::DIVIDE) {
+        //arithmetic, operands must be ints
+        if (binaryExpression.leftOperand->varType == VarType::INT && binaryExpression.rightOperand->varType == VarType::INT) {
+            binaryExpression.varType = VarType::INT;
+        } else {
+            if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
+                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+            }
+        }
+    }
+    else if (binaryExpression.op == BinaryOperator::EQUAL || binaryExpression.op == BinaryOperator::NOTEQUAL) {
+        //equality, operands must be same type
+        if (binaryExpression.leftOperand->varType == binaryExpression.rightOperand->varType) {
+            binaryExpression.varType = binaryExpression.leftOperand->varType;
+        } else {
+            if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
+                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+            }
+        }
+
+    } else {
+        //comparators, operands must be ints
+        if (binaryExpression.leftOperand->varType == VarType::INT && binaryExpression.rightOperand->varType == VarType::INT) {
+            binaryExpression.varType = VarType::BOOL; //produces bool
+        } else {
+            if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
+                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+            }
+        }
+    }
+
+}
+
+
 void SemanticVisitor::visit(AssignExpression &assignExpression) {
+    std::pair<std::string, variableMD> var = findVariable(assignExpression.target);
+    if (var.first == "" && var.second.varType == VarType::UNKNOWN) {
+        //no duplicates
+        errors.push_back(error{"var " + assignExpression.target + " is not defined",assignExpression.lines});
+    }
+    assignExpression.expression->accept(*this);
+    if (assignExpression.expression->varType != var.second.varType) {
+        errors.push_back(error{"var " + assignExpression.target + " expected an expression of type " + getVarType(var.second.varType) + ", got " + getVarType(assignExpression.expression->varType),assignExpression.lines});
+    } else {
+         assignExpression.varType = var.second.varType;
+    }
+
 
 }
 
