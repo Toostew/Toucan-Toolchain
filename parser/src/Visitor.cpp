@@ -371,6 +371,59 @@ void SemanticVisitor::visit(Function &function) {
     variableTableStack.pop_back();
 }
 
+void SemanticVisitor::visit(Block& block) {
+    std::unordered_map<std::string, VarType> variableTable;
+    variableTableStack.push_back(variableTable);
+
+    //detect the first occurrence of a return statement
+    //every statement AFTER that is non-reachable (warning)
+    bool localHasReturn = false;
+    bool hasWarned = false;
+    std::pair<size_t,size_t> lines = block.lines;
+    for (const auto& statement : block.statements) {
+        if (localHasReturn && !hasWarned) {
+            hasWarned = true;
+            lines.first = statement->lines.first;
+        }
+        statement->accept(*this);
+        if (hasReturn) {
+            localHasReturn = true;
+        }
+    }
+    if (localHasReturn && hasWarned) {
+        warnings.push_back(error{"Code unreachable",lines});
+    }
+
+    variableTableStack.pop_back();
+    hasReturn = localHasReturn;
+}
+
+void SemanticVisitor::visit(IfStatement &ifStatement) {
+
+    ifStatement.ifCondition->accept(*this);
+    //we detect anything that isnt bool and unknown. unknown will already get an error reported anyway
+    if (ifStatement.ifCondition->varType != VarType::BOOL && ifStatement.ifCondition->varType != VarType::UNKNOWN) {
+        errors.push_back(error{"If condition requires boolean expression",ifStatement.lines});
+    }
+
+    bool localIfHasReturn = false;
+    bool localElseHasReturn = false;
+    if (ifStatement.ifStatementType == IfStatementType::IF) {
+        //if then
+        ifStatement.ifBlock->accept(*this);
+        localIfHasReturn = false;
+    }
+    else {
+        //if else if, if else
+        ifStatement.ifBlock->accept(*this);
+        localIfHasReturn = hasReturn;
+        ifStatement.elseBlock == nullptr ? ifStatement.elseIf->accept(*this) : ifStatement.elseBlock->accept(*this);
+        localElseHasReturn = hasReturn;
+
+        localIfHasReturn = localIfHasReturn && localElseHasReturn;
+    }
+    hasReturn = localIfHasReturn;
+}
 
 
 

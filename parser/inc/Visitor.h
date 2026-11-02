@@ -87,7 +87,7 @@ class SemanticVisitor : public Visitor {
 public:
     std::unordered_map<std::string, functionMD> functionTable;
     std::vector<error> errors;
-    std::vector<std::string> warnings;
+    std::vector<error> warnings;
     std::vector<std::unordered_map<std::string, VarType>> variableTableStack;
     bool hasReturn = false;
 
