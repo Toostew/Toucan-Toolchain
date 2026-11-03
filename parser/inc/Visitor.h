@@ -101,7 +101,10 @@ public:
     std::pair<std::string, variableMD> findVariable(const std::string& varName);
 
     void functionSignatureCheck(const Program& program);
-    void functionBodyCheck(const Program& program);
+    void functionBodyCheck( Program& program);
+
+    void printErrors();
+    void printWarnings();
 
     void visit(Block& block) override;
     void visit(Function& function) override;

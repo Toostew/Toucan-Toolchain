@@ -12,3 +12,4 @@ add_executable(parser src/main.cpp
         src/Visitor.cpp)
 
 target_include_directories(parser PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_compile_options(parser PRIVATE -Wall -Wextra -O2)

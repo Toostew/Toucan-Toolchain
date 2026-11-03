@@ -332,8 +332,8 @@ void SemanticVisitor::functionSignatureCheck(const Program& program) {
 
 
 
-void SemanticVisitor::functionBodyCheck(const Program &program) {
-
+void SemanticVisitor::functionBodyCheck(Program &program) {
+    program.accept(*this);
 }
 
 
@@ -535,11 +535,12 @@ void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
     }
     else if (binaryExpression.op == BinaryOperator::EQUAL || binaryExpression.op == BinaryOperator::NOTEQUAL) {
         //equality, operands must be same type
-        if (binaryExpression.leftOperand->varType == binaryExpression.rightOperand->varType) {
-            binaryExpression.varType = binaryExpression.leftOperand->varType;
+        if ((binaryExpression.leftOperand->varType == binaryExpression.rightOperand->varType) && binaryExpression.leftOperand->varType == VarType::UNKNOWN) {
+            binaryExpression.varType = VarType::BOOL;
         } else {
             if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
                 errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+
             }
         }
 
@@ -556,7 +557,7 @@ void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
 
 }
 
-
+//this peice of shit code has drained so much of my life ill never get back
 void SemanticVisitor::visit(AssignExpression &assignExpression) {
     std::pair<std::string, variableMD> var = findVariable(assignExpression.target);
     if (var.first == "" && var.second.varType == VarType::UNKNOWN) {
@@ -564,14 +565,58 @@ void SemanticVisitor::visit(AssignExpression &assignExpression) {
         errors.push_back(error{"var " + assignExpression.target + " is not defined",assignExpression.lines});
     }
     assignExpression.expression->accept(*this);
-    if (assignExpression.expression->varType != var.second.varType) {
+    if ((assignExpression.expression->varType != var.second.varType && var.first != "") && assignExpression.expression->varType != VarType::UNKNOWN) {
         errors.push_back(error{"var " + assignExpression.target + " expected an expression of type " + getVarType(var.second.varType) + ", got " + getVarType(assignExpression.expression->varType),assignExpression.lines});
     } else {
          assignExpression.varType = var.second.varType;
     }
+}
 
+
+void SemanticVisitor::visit(Call &call) {
+   auto iter = functionTable.find(call.functionName);
+    if (iter != functionTable.end()) {
+        //found, check args
+        if (iter->second.parameters.size() != call.arguments.size()) {
+            errors.push_back(error{"function " + call.functionName + " parameters count mismatch", call.lines});
+        }
+        else {
+            for (int i = 0; i < call.arguments.size(); i++) {
+            call.arguments[i]->accept(*this);
+                if (call.arguments[i]->varType != iter->second.parameters[i].varType && call.arguments[i]->varType != VarType::UNKNOWN) {
+                    errors.push_back(error{iter->first + " expected parameter of type " + getVarType(iter->second.parameters[i].varType) + ", got " + getVarType(call.arguments[i]->varType),call.arguments[i]->lines});
+                }
+            }
+            call.varType = iter->second.returnType;
+        }
+
+    } else {
+        //could not find
+        errors.push_back(error{"Call for function " + call.functionName + " not found",call.lines});
+    }
+}
+
+void SemanticVisitor::visit(VariableReference &variableReference) {
+    const std::pair<std::string, variableMD> var = findVariable(variableReference.varName);
+    if (var.first == "" && var.second.varType == VarType::UNKNOWN) {
+        errors.push_back(error{"variable " + variableReference.varName + " is not defined",variableReference.lines});
+    } else {
+        variableReference.varType = var.second.varType;
+    }
+}
+
+void SemanticVisitor::visit(Literal_BOOL &literalBool) {}
+
+void SemanticVisitor::visit(Literal_INT &literalInt) {}
+
+void SemanticVisitor::printErrors() {
 
 }
+
+void SemanticVisitor::printWarnings() {
+
+}
+
 
 
 
