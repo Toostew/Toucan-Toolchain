@@ -518,7 +518,7 @@ void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
             binaryExpression.varType = VarType::BOOL;
         } else {
             if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
-                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+                errors.push_back(error{"binary expression type mismatch, expected BOOL",binaryExpression.lines});
             }
 
         }
@@ -529,17 +529,17 @@ void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
             binaryExpression.varType = VarType::INT;
         } else {
             if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
-                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+                errors.push_back(error{"binary expression type mismatch, expected INT",binaryExpression.lines});
             }
         }
     }
     else if (binaryExpression.op == BinaryOperator::EQUAL || binaryExpression.op == BinaryOperator::NOTEQUAL) {
         //equality, operands must be same type
-        if ((binaryExpression.leftOperand->varType == binaryExpression.rightOperand->varType) && binaryExpression.leftOperand->varType == VarType::UNKNOWN) {
+        if ((binaryExpression.leftOperand->varType == binaryExpression.rightOperand->varType) && binaryExpression.leftOperand->varType != VarType::UNKNOWN) {
             binaryExpression.varType = VarType::BOOL;
         } else {
             if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
-                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+                errors.push_back(error{"binary expression type mismatch, expected same type for both operands",binaryExpression.lines});
 
             }
         }
@@ -550,7 +550,7 @@ void SemanticVisitor::visit(BinaryExpression &binaryExpression) {
             binaryExpression.varType = VarType::BOOL; //produces bool
         } else {
             if (binaryExpression.leftOperand->varType != VarType::UNKNOWN && binaryExpression.rightOperand->varType != VarType::UNKNOWN) {
-                errors.push_back(error{"binary expression type mismatch",binaryExpression.lines});
+                errors.push_back(error{"binary expression type mismatch, expected int",binaryExpression.lines});
             }
         }
     }
@@ -610,11 +610,21 @@ void SemanticVisitor::visit(Literal_BOOL &literalBool) {}
 void SemanticVisitor::visit(Literal_INT &literalInt) {}
 
 void SemanticVisitor::printErrors() {
-
+    int i = 0;
+    for (auto &error : errors) {
+        std::cout << "ERROR" <<"[" + std::to_string(error.lines.first) + "]";
+        std::cout << "[" + std::to_string(error.lines.second) + "]: ";
+        std::cout << error.message << std::endl;
+    }
 }
 
 void SemanticVisitor::printWarnings() {
-
+    int i = 0;
+    for (auto &warning : warnings) {
+        std::cout << "WARNING" <<"[" + std::to_string(warning.lines.first) + "]";
+        std::cout << "[" + std::to_string(warning.lines.second) + "]: ";
+        std::cout << warning.message << std::endl;
+    }
 }
 
 
