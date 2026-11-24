@@ -19,6 +19,8 @@ class Block;
 class Expression;
 class IfStatement;
 
+constexpr size_t FRAME_UNSET = 5; // logically, frame sizes could only ever be 0 (leaf nodes), or multiples of 16 (as per RV32I ABI standard)
+
 
 //operators with 2 variables
 enum class BinaryOperator{
@@ -262,6 +264,10 @@ public:
     VarType returnType;
     Block functionBlock;
     std::vector<Param> parameters;
+
+    size_t frameSize = FRAME_UNSET; //by default it's the FRAME_UNSET value
+    std::unordered_map<std::string, size_t> variableOffset;
+
 
     void accept(Visitor& visitor) override;
     Function(std::string functionName, Block functionBlock, std::vector<Param> parameters, VarType returnType, std::pair<size_t, size_t>  line)

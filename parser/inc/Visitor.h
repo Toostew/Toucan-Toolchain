@@ -131,6 +131,39 @@ public:
 
 };
 
+class StackLayoutVisitor : public Visitor {
+public:
+
+    std::pair<std::string, variableMD> findVariable(const std::string& varName);
+
+
+    void checkProgram(Program& program);
+
+    void visit(Block& block) override;
+    void visit(Function& function) override;
+    void visit(Program& program) override;
+    //statement
+    void visit(IfStatement& ifStatement) override;
+    void visit(ForStatement& forStatement) override;
+    void visit(WhileStatement& whileStatement) override;
+    void visit(ReturnStatement& returnStatement) override;
+    void visit(ExpressStatement& expressStatement) override;
+    void visit(VarDeclarationStatement& varDeclarationStatement) override;
+    //expression
+    void visit(UnaryExpression& unaryExpression) override;
+    void visit(BinaryExpression& binaryExpression) override;
+    void visit(AssignExpression& assignExpression) override;
+    void visit(Literal_BOOL& literalBool) override;
+    void visit(Literal_INT& literalInt) override;
+    void visit(VariableReference& variableReference) override;
+    void visit(Call& call) override;
+
+    virtual ~StackLayoutVisitor() = default;
+
+
+
+};
+
 
 
 
