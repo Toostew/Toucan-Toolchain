@@ -644,6 +644,21 @@ std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::stri
     return std::pair<std::string, variableMD>({"",variableMD{VarType::UNKNOWN, std::pair<size_t,size_t>(0,0)}});
 }
 
+void StackLayoutVisitor::layoutStackFrame(Program &program) {
+    for (std::unique_ptr<Function>& function : program.functions) {
+        this->hasCall = false; //reset flag
+
+        function->accept(*this);
+        if (this->hasCall) {
+            //non-leaf function; doesnt need to store ra or s0
+            //NOTE: technically we already set the stack frame here so I dont think we even need to store hasCall on the function node
+        } else {
+            //leaf function; needs to store return address and s0 (pointer to caller's stack frame)
+        }
+
+    }
+}
+
 
 
 

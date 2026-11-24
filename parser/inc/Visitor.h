@@ -134,10 +134,9 @@ public:
 class StackLayoutVisitor : public Visitor {
 public:
 
-    std::pair<std::string, variableMD> findVariable(const std::string& varName);
+    bool hasCall = false;
 
-
-    void checkProgram(Program& program);
+    void layoutStackFrame(Program& program); //this lays out the stackframe and detects calls for leaf/non-leaf function classification
 
     void visit(Block& block) override;
     void visit(Function& function) override;

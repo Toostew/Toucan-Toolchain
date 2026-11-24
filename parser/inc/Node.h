@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <functional>
 #include <iostream>
+#include <variant>
 
 class Visitor;
 class Block;
@@ -266,7 +267,9 @@ public:
     std::vector<Param> parameters;
 
     size_t frameSize = FRAME_UNSET; //by default it's the FRAME_UNSET value
-    std::unordered_map<std::string, size_t> variableOffset;
+    //std::variant allows either a Node* type or string, since we need to be able to store both parameters and the local vars themselves
+    std::unordered_map<std::variant<Node*, std::string>, size_t> variableOffset; //all values are 4 bytes long.
+    bool hasCall = false; //if the node has no calls, it is a leaf hence doesnt need to set s0 or return address registers during codegen
 
 
     void accept(Visitor& visitor) override;
