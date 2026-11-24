@@ -135,6 +135,7 @@ class StackLayoutVisitor : public Visitor {
 public:
 
     bool hasCall = false;
+    std::vector<std::pair<std::variant<VarDeclarationStatement*, std::string>, size_t>> variableOffset; //all values are 4 bytes long.
 
     void layoutStackFrame(Program& program); //this lays out the stackframe and detects calls for leaf/non-leaf function classification
 
