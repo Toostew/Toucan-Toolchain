@@ -647,16 +647,25 @@ std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::stri
 void StackLayoutVisitor::layoutStackFrame(Program &program) {
     for (std::unique_ptr<Function>& function : program.functions) {
         this->hasCall = false; //reset flag
+        this->variableOffset.clear(); // clear variable Offsets for this function
+
+
 
         function->accept(*this);
+        function->hasCall = this->hasCall;
         if (this->hasCall) {
-            //non-leaf function; doesnt need to store ra or s0
+            //non-leaf function; must store ra and caller fp
             //NOTE: technically we already set the stack frame here so I dont think we even need to store hasCall on the function node
+            //all previously computed offsets need to be shifted down 8 bytes to make way for ra and caller fp
+            for (auto& var : this->variableOffset) {
+                var.second += 8; //NOTE: offsets are strictly DOWN from the s0, since stack frame grows downwards towards lower addresses
+            }
 
         } else {
-            //leaf function; needs to store return address and s0 (pointer to caller's stack frame)
+            //leaf function; doesnt need to store return address
 
         }
+        function->variableOffset = std::move(this->variableOffset); //move ownership
 
     }
 }

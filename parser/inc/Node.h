@@ -268,7 +268,7 @@ public:
 
     size_t frameSize = FRAME_UNSET; //by default it's the FRAME_UNSET value
     //std::variant allows either a Node* type or string, since we need to be able to store both parameters and the local vars themselves
-    std::vector<std::pair<std::variant<Node*, std::string>, size_t>> variableOffset; //all values are 4 bytes long for now. in the future, this may change with variable length data types
+    std::vector<std::pair<std::variant<VarDeclarationStatement*, std::string>, size_t>> variableOffset; //all values are 4 bytes long for now. in the future, this may change with variable length data types
     bool hasCall = false; //if the node has no calls, it is a leaf hence doesnt need to set s0 or return address registers during codegen
 
 
