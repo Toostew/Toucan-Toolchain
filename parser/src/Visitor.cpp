@@ -649,6 +649,14 @@ void StackLayoutVisitor::layoutStackFrame(Program &program) {
     program.accept(*this);
 }
 
+
+
+
+
+//we need to check for local vars, which appear as VarDeclarationStatement,
+//we also need to detect function calls, which appear as Call
+//VarDeclarationStatement is a statement and can appear in Blocks, hence can be found nested inside if, for, while loops
+//Calls can be found inside any expression. we need only find them once to render this function a non-leaf, otherwise it is a leaf
 void StackLayoutVisitor::visit(Program& program) {
 
     for (std::unique_ptr<Function>& function : program.functions) {
@@ -698,51 +706,88 @@ void StackLayoutVisitor::visit(Block &block) {
 }
 
 void StackLayoutVisitor::visit(VarDeclarationStatement &varDeclarationStatement) {
-    //check for call
-    varDeclarationStatement.expression->accept(*this);
+    //check for call, if it not already found
+    if (!this->hasCall) {
+        varDeclarationStatement.expression->accept(*this);
+    }
+
 
     //var declaration, add this to the vector
     this->variableOffset.push_back(std::pair<VarDeclarationStatement*, size_t>({&varDeclarationStatement,this->variableOffset.size()*DATA_BYTES}));
 }
 
 void StackLayoutVisitor::visit(IfStatement &ifStatement) {
+    //check for call, if not already found
+    if (!this->hasCall) {
+        ifStatement.ifCondition->accept(*this);
+    }
 
+
+    //depends on what type of ifstatement this is
+    ifStatement.ifBlock->accept(*this);
+    if (ifStatement.ifStatementType == IfStatementType::IFELSE) {
+        ifStatement.elseBlock->accept(*this);
+
+    } else if (ifStatement.ifStatementType == IfStatementType::IFELSEIF) {
+        ifStatement.elseIf->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(WhileStatement &whileStatement) {
+    if (!this->hasCall) {
+        whileStatement.condition->accept(*this);
+    }
 
+    whileStatement.block->accept(*this);
 }
 
 void StackLayoutVisitor::visit(ForStatement &forStatement) {
+    if (!this->hasCall) {
+        forStatement.forCondition->accept(*this);
+        forStatement.forIncrement->accept(*this);
+    }
 
+    forStatement.forInit->accept(*this); //is a varDeclaration
+    forStatement.block->accept(*this); //blocks may have varDeclareStatements
 }
 
 void StackLayoutVisitor::visit(ReturnStatement &returnStatement) {
-
+    if (!this->hasCall) {
+        returnStatement.returnExpression->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(Call &call) {
-
+    this->hasCall = true; //set to true
 }
 
 void StackLayoutVisitor::visit(ExpressStatement &expressStatement) {
-
+    if (!this->hasCall) {
+        expressStatement.expression->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(AssignExpression &assignExpression) {
-
+    if (!this->hasCall) {
+        assignExpression.expression->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(BinaryExpression &binaryExpression) {
-
+    if (!this->hasCall) {
+        binaryExpression.leftOperand->accept(*this);
+        binaryExpression.rightOperand->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(UnaryExpression &unaryExpression) {
-
+    if (!this->hasCall) {
+        unaryExpression.operand->accept(*this);
+    }
 }
 
 void StackLayoutVisitor::visit(VariableReference &variableReference) {
-    //doesnt do anything
+    //do nothing
 }
 
 void StackLayoutVisitor::visit(Literal_BOOL &literalBool) {
