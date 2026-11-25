@@ -676,6 +676,16 @@ void StackLayoutVisitor::visit(Program& program) {
     }
 }
 
+void StackLayoutVisitor::visit(Function &function) {
+    //The compiler supports up to 8 arguments
+    //in  a full frame stack, arguments come after ra and s0, but before local vars
+
+    for (const Param& param : function.parameters) {
+        this->variableOffset.push_back(std::pair<std::string, size_t>({param.name,this->variableOffset.size()*DATA_BYTES}));
+    }
+}
+
+
 
 
 

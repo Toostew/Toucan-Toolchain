@@ -20,8 +20,9 @@ class Block;
 class Expression;
 class IfStatement;
 
+//TODO: move this to somewhere easier to find
 constexpr size_t FRAME_UNSET = 5; // logically, frame sizes could only ever be 0 (leaf nodes), or multiples of 16 (as per RV32I ABI standard)
-
+constexpr size_t DATA_BYTES = 4; // byte width of data types
 
 //operators with 2 variables
 enum class BinaryOperator{
