@@ -16,8 +16,9 @@ typedef struct {
 
 typedef struct {
     VarType varType;
+    VarDeclarationStatement* varDeclarationStatementOrName; //this is for identification later, since in the same function, there could be similar named vars in sister scopes
     std::pair<size_t,size_t> lines;
-} variableMD;
+} variableMD; //variableMetaData
 
 typedef struct {
     std::string message;
@@ -93,7 +94,7 @@ public:
     std::unordered_map<std::string, functionMD> functionTable;
     std::vector<error> errors;
     std::vector<error> warnings;
-    std::vector<std::unordered_map<std::string, variableMD>> variableTableStack;
+    std::vector<std::unordered_map<std::string, variableMD>> variableTableStack; //note that we use a stack so nested scopes have access to variables declared in parent scope but not sibling
     VarType currFunctionReturnType = VarType::UNKNOWN;
     bool hasReturn = false;
 

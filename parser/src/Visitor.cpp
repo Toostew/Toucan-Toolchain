@@ -365,7 +365,8 @@ void SemanticVisitor::visit(Function &function) {
             std::string message = "parameter " + param.name + " in " + function.functionName + " is already defined";
             errors.push_back(error{message,std::pair<size_t,size_t>{function.lines.first,function.lines.first}});
         }
-        variableTable[param.name] = variableMD{param.varType,std::pair<size_t,size_t>{function.lines.first,function.lines.first}}; //duplicate params overwrite, doesnt matter
+        //params ONLY have name and vartype, hence we cannot provide a ptr. so we provide nullptr, this helps seperate params and actual varDeclarationStatements
+        variableTable[param.name] = variableMD{param.varType,nullptr,std::pair<size_t,size_t>{function.lines.first,function.lines.first}}; //duplicate params overwrite, doesnt matter
     }
     variableTableStack.push_back(variableTable);
     currFunctionReturnType = function.returnType;
@@ -492,7 +493,8 @@ void SemanticVisitor::visit(VarDeclarationStatement &varDeclarationStatement) {
         errors.push_back(error{"var " + var.first + " already defined",var.second.lines});
     } else {
         //no duplicates
-        variableTableStack.back()[varDeclarationStatement.varName] = variableMD{varDeclarationStatement.varType,varDeclarationStatement.lines};
+        //this adds the variable into the topmost map. note that we use a stack so nested scopes have access to variables declared in parent scope but not sibling
+        variableTableStack.back()[varDeclarationStatement.varName] = variableMD{varDeclarationStatement.varType,&varDeclarationStatement,varDeclarationStatement.lines};
     }
     hasReturn = false;
 }
@@ -638,7 +640,7 @@ void SemanticVisitor::printWarnings() {
 
 
 
-
+//we check the entire stack, hence nested scopes have access to variables in parent scopes
 std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::string& varName) {
 
     for (const auto& variableTable : variableTableStack) {
@@ -648,7 +650,7 @@ std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::stri
         }
     }
     //could not find a copy
-    return std::pair<std::string, variableMD>({"",variableMD{VarType::UNKNOWN, std::pair<size_t,size_t>(0,0)}});
+    return std::pair<std::string, variableMD>({"",variableMD{VarType::UNKNOWN, nullptr,std::pair<size_t,size_t>(0,0)}});
 }
 
 //entrypoint into program
