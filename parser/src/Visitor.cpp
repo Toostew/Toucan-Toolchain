@@ -6,6 +6,8 @@
 #include "parser.h"
 #include "Visitor.h"
 
+#include "exceptions.h"
+
 
 //DumpVisitor
 
@@ -349,6 +351,11 @@ void SemanticVisitor::visit(Program &program) {
 void SemanticVisitor::visit(Function &function) {
     //return type must match!
 
+    //check the number of parameters, should not exceed 8 always
+    if (function.parameters.size() > 8) {
+        std::string message = "Function '" + function.functionName + "' has more than 8 arguments";
+        errors.push_back(error{message,std::pair<size_t,size_t>{function.lines.first,function.lines.first}});
+    }
 
     std::unordered_map<std::string, variableMD> variableTable;
     for (const auto& param : function.parameters) {
@@ -653,12 +660,12 @@ void StackLayoutVisitor::layoutStackFrame(Program &program) {
 
 
 
-//we need to check for local vars, which appear as VarDeclarationStatement,
+//we need to check for local vars, which appear as VarDeclarationStatement
 //we also need to detect function calls, which appear as Call
 //VarDeclarationStatement is a statement and can appear in Blocks, hence can be found nested inside if, for, while loops
 //Calls can be found inside any expression. we need only find them once to render this function a non-leaf, otherwise it is a leaf
 void StackLayoutVisitor::visit(Program& program) {
-
+    size_t tempFrameSize = 0;
     for (std::unique_ptr<Function>& function : program.functions) {
         this->hasCall = false; //reset flag
         this->variableOffset.clear(); // clear variable Offsets for this function
@@ -669,16 +676,23 @@ void StackLayoutVisitor::visit(Program& program) {
         function->hasCall = this->hasCall;
         if (this->hasCall) {
             //non-leaf function; must store ra and caller fp
-            //NOTE: technically we already set the stack frame here so I dont think we even need to store hasCall on the function node
             //all previously computed offsets need to be shifted down 8 bytes to make way for ra and caller fp
             for (auto& var : this->variableOffset) {
                 var.second += 8; //NOTE: offsets are strictly DOWN from the s0, since stack frame grows downwards towards lower addresses
             }
+            tempFrameSize = 8 + this->variableOffset.size()*DATA_BYTES;
 
         } else {
-            //leaf function; doesnt need to store return address. nothing special happens so this branch is useless
-
+            //leaf function; doesnt need to store return address, but it does store caller fp at s0, so reserve 4 bytes
+            //all previously computed offsets need to be shifted down 4 bytes to make way for fp, the word stored at s0
+            for (auto& var : this->variableOffset) {
+                var.second += 4;
+            }
+            tempFrameSize = 4 + this->variableOffset.size()*DATA_BYTES;
         }
+        //round up to nearest multiple of 16
+        tempFrameSize = ((tempFrameSize + 15)/16)*16;
+        function->frameSize = tempFrameSize;
         function->variableOffset = std::move(this->variableOffset); //move ownership
 
     }
@@ -687,6 +701,7 @@ void StackLayoutVisitor::visit(Program& program) {
 void StackLayoutVisitor::visit(Function &function) {
     //The compiler supports up to 8 arguments
     //in  a full frame stack, arguments come after ra and s0, but before local vars
+
 
     //we dont add to the function's vector yet, we are collecting these in the class vector. The values will be handed over later
     for (const Param& param : function.parameters) {

@@ -34,8 +34,15 @@ class noFunctions : public std::runtime_error {
             : std::runtime_error(message) {}
 };
 
+class TooManyArguments : public std::runtime_error {
+public:
+    explicit TooManyArguments(const std::string& message)
+        : std::runtime_error(message) {}
+};
+
 class genericIssue : public std::runtime_error {
     public:
     explicit genericIssue(const std::string& message)
         : std::runtime_error(message) {}
 };
+
