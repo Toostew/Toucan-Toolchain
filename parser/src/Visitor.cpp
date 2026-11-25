@@ -680,10 +680,88 @@ void StackLayoutVisitor::visit(Function &function) {
     //The compiler supports up to 8 arguments
     //in  a full frame stack, arguments come after ra and s0, but before local vars
 
+    //we dont add to the function's vector yet, we are collecting these in the class vector. The values will be handed over later
     for (const Param& param : function.parameters) {
         this->variableOffset.push_back(std::pair<std::string, size_t>({param.name,this->variableOffset.size()*DATA_BYTES}));
     }
+    function.functionBlock.accept(*this); //evaluate block
 }
+
+void StackLayoutVisitor::visit(Block &block) {
+
+    //we need to check everything in case a Call was made
+    //TODO: ideally, we only ever need to spot a call once, so we dont have to scan any further. We also only need to check for VarDeclarationStatement
+    for (const auto& statement : block.statements) {
+        statement->accept(*this);
+    }
+
+}
+
+void StackLayoutVisitor::visit(VarDeclarationStatement &varDeclarationStatement) {
+    //check for call
+    varDeclarationStatement.expression->accept(*this);
+
+    //var declaration, add this to the vector
+    this->variableOffset.push_back(std::pair<VarDeclarationStatement*, size_t>({&varDeclarationStatement,this->variableOffset.size()*DATA_BYTES}));
+}
+
+void StackLayoutVisitor::visit(IfStatement &ifStatement) {
+
+}
+
+void StackLayoutVisitor::visit(WhileStatement &whileStatement) {
+
+}
+
+void StackLayoutVisitor::visit(ForStatement &forStatement) {
+
+}
+
+void StackLayoutVisitor::visit(ReturnStatement &returnStatement) {
+
+}
+
+void StackLayoutVisitor::visit(Call &call) {
+
+}
+
+void StackLayoutVisitor::visit(ExpressStatement &expressStatement) {
+
+}
+
+void StackLayoutVisitor::visit(AssignExpression &assignExpression) {
+
+}
+
+void StackLayoutVisitor::visit(BinaryExpression &binaryExpression) {
+
+}
+
+void StackLayoutVisitor::visit(UnaryExpression &unaryExpression) {
+
+}
+
+void StackLayoutVisitor::visit(VariableReference &variableReference) {
+    //doesnt do anything
+}
+
+void StackLayoutVisitor::visit(Literal_BOOL &literalBool) {
+    //do nothing
+}
+
+void StackLayoutVisitor::visit(Literal_INT &literalInt) {
+    //do nothing
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
