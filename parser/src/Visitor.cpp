@@ -644,7 +644,13 @@ std::pair<std::string, variableMD> SemanticVisitor::findVariable(const std::stri
     return std::pair<std::string, variableMD>({"",variableMD{VarType::UNKNOWN, std::pair<size_t,size_t>(0,0)}});
 }
 
+//entrypoint into program
 void StackLayoutVisitor::layoutStackFrame(Program &program) {
+    program.accept(*this);
+}
+
+void StackLayoutVisitor::visit(Program& program) {
+
     for (std::unique_ptr<Function>& function : program.functions) {
         this->hasCall = false; //reset flag
         this->variableOffset.clear(); // clear variable Offsets for this function
@@ -662,13 +668,14 @@ void StackLayoutVisitor::layoutStackFrame(Program &program) {
             }
 
         } else {
-            //leaf function; doesnt need to store return address
+            //leaf function; doesnt need to store return address. nothing special happens so this branch is useless
 
         }
         function->variableOffset = std::move(this->variableOffset); //move ownership
 
     }
 }
+
 
 
 
