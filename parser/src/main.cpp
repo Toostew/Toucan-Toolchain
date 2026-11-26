@@ -119,6 +119,15 @@ int main(int argc, char* argv[]) {
         DumpVisitor dumpVisitor = DumpVisitor();
         dumpVisitor.visit(*program);
 
+        std::cout << "making stackLayout" << std::endl;
+        StackLayoutVisitor stackLayout = StackLayoutVisitor();
+        std::cout << "stackLayout made" << std::endl;
+        stackLayout.layoutStackFrame(*program);
+        std::cout << "stack laid out" << std::endl;
+
+        for (const auto& func : program->functions) {
+            stackLayout.printStackFrame(*func);
+        }
     }
 
 

@@ -658,6 +658,27 @@ void StackLayoutVisitor::layoutStackFrame(Program &program) {
     program.accept(*this);
 }
 
+//print the stack frame for a given function
+void StackLayoutVisitor::printStackFrame(const Function &function) {
+    std::cout << "function: " << function.functionName << std::endl;
+    std::cout << "  " << "Stack Frame size: " << function.frameSize<<std::endl;
+    std::cout << "  " << "Stack Frame: " << std::endl;
+    std::cout << "  " << "Var" << "   |   "<< "Offset"<<std::endl;
+    std::cout << "  " << "s0" <<  "   |   "<< "0" << std::endl;
+    if (function.hasCall) {
+        //non-leaf
+        std::cout << "  " << "ra" <<  "   |   "<< DATA_BYTES << std::endl;
+
+    }
+    for (const std::pair<std::variant<VarDeclarationStatement*, std::string>, size_t>& var : function.variableOffset) {
+         if (std::holds_alternative<VarDeclarationStatement*>(var.first)) {
+             std::cout << "  " << std::get<VarDeclarationStatement*>(var.first)->varName << "   |   " << var.second << std::endl;
+         } else {
+             //holds string
+             std::cout << "  " << std::get<std::string>(var.first) << "   |   " << var.second << std::endl;
+         }
+    }
+}
 
 
 
@@ -669,6 +690,7 @@ void StackLayoutVisitor::layoutStackFrame(Program &program) {
 void StackLayoutVisitor::visit(Program& program) {
     size_t tempFrameSize = 0;
     for (std::unique_ptr<Function>& function : program.functions) {
+        std::cout << function->functionName << std::endl;
         this->hasCall = false; //reset flag
         this->variableOffset.clear(); // clear variable Offsets for this function
 
@@ -769,7 +791,8 @@ void StackLayoutVisitor::visit(ForStatement &forStatement) {
 }
 
 void StackLayoutVisitor::visit(ReturnStatement &returnStatement) {
-    if (!this->hasCall) {
+    if (!this->hasCall && returnStatement.returnExpression != nullptr ) {
+        //void returns have nullptr so attempting to accept would cause a segfault, we catch that here
         returnStatement.returnExpression->accept(*this);
     }
 }
